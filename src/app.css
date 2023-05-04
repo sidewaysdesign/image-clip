@@ -1,0 +1,160 @@
+:root {
+  --bigradius: 5rem;
+  --cornerbuttonsize: 3rem;
+  --corneroffset: 2.75rem;
+  --titleoffset: -6.5em;
+  --apppadding: 1rem;
+  --controloffset: 2.75rem;
+  --toprowheight: 2.5rem;
+  --darkbackground-trans: rgba(0, 0, 0, 0.4);
+  --darkbackground: rgba(0, 0, 0, 1);
+  --gap: 1.5rem;
+  --animoffset: 1.5rem;
+}
+html {
+  font-size: 16px;
+}
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  background-color: rgb(40, 40, 40);
+  font-size: 16px;
+}
+* {
+  box-sizing: border-box;
+  z-index: 0;
+}
+#image {
+  /* position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100vw;
+  max-height: 100vh;
+  box-shadow: 0.75rem 0.75rem 1.5rem black;
+  z-index: -1; */
+}
+h1 {
+  position: fixed;
+  font-size: 0.88rem;
+  color: white;
+  font-weight: normal;
+  top: var(--apppadding);
+  left: var(--apppadding);
+  line-height: 1;
+  margin: 0;
+}
+.filename-area {
+  position: absolute;
+  min-height: var(--toprowheight);
+  background-color: var(--darkbackground-trans);
+  border-radius: calc(var(--toprowheight) / 2);
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.12s ease-in-out, transform 0.3s ease-in-out;
+  transform: translateY(var(--animoffset));
+  bottom: 0;
+}
+.active .filename-area {
+  opacity: 1;
+  transform: translateY(0);
+}
+.filename-text {
+  color: white;
+  font-size: 0.85rem;
+  line-height: 1.33;
+  text-align: left;
+  font-weight: normal;
+  padding: 0.5rem 1em;
+  line-break: anywhere;
+  max-width: calc(100vw - var(--toprowheight) * 3 + var(--gap));
+}
+#controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem;
+  display: block;
+}
+#controls:hover button {
+  opacity: 0.33;
+}
+
+.filename-edit {
+  background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwb2x5Z29uIHBvaW50cz0iNDcuMjY4IDguNTc5IDU1LjQyMSAxNi43MzIgMjMuMzI3IDQ4LjgyNSA4LjU3OSA1NS40MjEgMTUuMTc1IDQwLjY3MyA0Ny4yNjggOC41NzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NXB4OyIvPjxsaW5lIHgxPSIzOS42NzUiIHkxPSIxNi4xNzMiIHgyPSI0Ny44MjciIHkyPSIyNC4zMjUiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NXB4OyIvPjwvc3ZnPg==');
+  width: 2rem;
+  height: 2rem;
+  margin: 1rem;
+  border-radius: 50%;
+  display: block;
+  outline: 1px solid white;
+}
+#close-button {
+  width: var(--toprowheight);
+  height: var(--toprowheight);
+  position: fixed;
+  right: var(--apppadding);
+  top: var(--apppadding);
+  background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxsaW5lIHgxPSI1MS41MjQiIHkxPSIxMi40NzYiIHgyPSIxMi40NzYiIHkyPSI1MS41MjQiIHN0eWxlPSJmaWxsOiNmZmY7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLW1pdGVybGltaXQ6MTA7IHN0cm9rZS13aWR0aDo1cHg7Ii8+PGxpbmUgeDE9IjUxLjUyNCIgeTE9IjUxLjUyNCIgeDI9IjEyLjQ3NiIgeTI9IjEyLjQ3NiIgc3R5bGU9ImZpbGw6I2ZmZjsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbWl0ZXJsaW1pdDoxMDsgc3Ryb2tlLXdpZHRoOjVweDsiLz48L3N2Zz4=');
+  background-color: var(--darkbackground-trans);
+  border-radius: 50%;
+}
+
+#close-button,
+.filename-edit {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1.5rem;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: 0.12s filter ease-in-out;
+}
+.filename-edit:hover,
+#close-button:hover {
+  filter: brightness(0.7); /* Darken the button on hover */
+}
+
+.tooltip {
+  visibility: hidden;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 4px;
+  border-radius: 3px;
+  position: absolute;
+  z-index: 1;
+  bottom: -1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.7rem;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+.editing,
+.tooltip:focus {
+  outline: 1px dotted white;
+}
+
+/* Toast START */
+
+._toastBar {
+  display: none !important;
+}
+._toastMsg {
+  line-height: 1.25 !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+.toast-alert {
+  ._toastItem {
+    border: 10px solid currentColor !important;
+    border-width: 0 0 0 10px !important;
+  }
+}
+
+/* Toast END */

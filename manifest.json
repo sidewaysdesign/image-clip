@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Image Quadrant Extractor",
+  "version": "1.0.0",
+  "description": "A Chrome extension that allows users to extract and download quadrants of an image.",
+  "icons": {
+    "48": "icon.png"
+  },
+  "action": {
+    "default_icon": {
+      "48": "icon.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "tabs"],
+  "web_accessible_resources": [
+    {
+      "resources": ["image-viewer.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

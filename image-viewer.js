@@ -9,7 +9,7 @@ const addButtonClickListener = (buttonId, action) => {
     if (action === 'downloadWholeImage') {
       downloadWholeImage()
     } else {
-      downloadQuadrant(action)
+      processImage(action)
     }
   })
 }
@@ -27,7 +27,7 @@ function downloadWholeImage() {
   link.click()
 }
 
-function downloadQuadrant(quadrant) {
+function processImage(quadrant) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   canvas.width = imageElement.width

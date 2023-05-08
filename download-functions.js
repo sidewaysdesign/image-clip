@@ -13,7 +13,7 @@ function initOpenImageViewerBtn() {
     window.location.replace(viewerUrl)
   }
 }
-const downloadQuadrant = (imageElement, index, filename, extension) => {
+const processImage = (imageElement, index, filename, extension) => {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   canvas.width = imageElement.width
@@ -61,7 +61,7 @@ function addButtonClickListener(buttonId, action, imageUrl, imageElement) {
     if (action === 'downloadWholeImage') {
       downloadWholeImage(imageUrl)
     } else {
-      downloadQuadrant(imageElement, action)
+      processImage(imageElement, action)
     }
   })
 }

@@ -1,14 +1,14 @@
 <script>
-  import { onMount, afterUpdate } from 'svelte'
+  import { onMount, afterUpdate, createEventDispatcher } from 'svelte'
+  import { rootnames, cropinfo } from './stores.js'
   import ImageAction from './ImageAction.svelte'
-  import { rootnames } from './store-rootname.js'
-  import { createEventDispatcher } from 'svelte'
 
   export let imageUrl
   export let imageExtension
   export let currentIndex
-  let index = currentIndex
   export let mode
+
+  let index = currentIndex
 
   let isLoading = true
   let imageWidth
@@ -17,6 +17,7 @@
   let canvasContainer
   let expanded = false
   let aspectRatioCSS = ''
+  let frameSpecs
 
   const getImageRef = async url => {
     const img = new Image()
@@ -35,7 +36,7 @@
       const img = await getImageRef(url)
       width = img.width
       height = img.height
-      canvas = getFullCanvas(img, width, height)
+      canvas = getFullCanvas(img, 0, 0, width, height)
       return { width, height, canvas }
     } catch (error) {
       console.error('Error getting image dimensions:', error)
@@ -46,6 +47,13 @@
   const dispatch = createEventDispatcher()
   onMount(async () => {
     const imageObj = await instantiateImageProps(imageUrl)
+    frameSpecs = {
+      width: imageObj.width,
+      height: imageObj.height,
+      x1: 0,
+      y1: 0,
+      factor: 1
+    }
     imageWidth = imageObj.width
     imageHeight = imageObj.height
     fullCanvas = imageObj.canvas
@@ -63,7 +71,7 @@
     const aspectHeight = height / divisor
     return `aspect-ratio: ${aspectWidth} / ${aspectHeight};`
   }
-  const getFullCanvas = (img, width, height) => {
+  const getFullCanvas = (img, x, y, width, height) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     canvas.width = width
@@ -139,7 +147,6 @@
   const copyCanvasToClipboard = canvas => {
     canvas.toBlob(blob => {
       const clipboardItem = new ClipboardItem({ 'image/png': blob })
-      dispatch('toastNotice', 'Full image copied to clipboard.')
       return navigator.clipboard.write([clipboardItem])
     })
   }
@@ -158,17 +165,32 @@
         console.error('Failed to copy quadrant of image to clipboard:', err)
       })
   }
-  const imageActionHandler = action => {
-    if (mode === 'quadrant') {
+  const cropCanvas = (canvas, cropinfo) => {
+    const cropCanvas = document.createElement('canvas')
+    const cropCtx = cropCanvas.getContext('2d')
+    cropCanvas.width = cropinfo.width
+    cropCanvas.height = cropinfo.height
+    cropCtx.drawImage(canvas, cropinfo.x, cropinfo.y, cropinfo.width, cropinfo.height, 0, 0, cropinfo.width, cropinfo.height)
+    return cropCanvas
+  }
+  const imageActionHandler = async action => {
+    if (mode === 'quadrant' && !$cropinfo.isDefined) {
       processImage(action, currentIndex)
     } else {
+      const downloadCanvas = $cropinfo.isDefined ? cropCanvas(fullCanvas, $cropinfo) : fullCanvas
       if (action === 'download') {
-        downloadCanvasAsFile(fullCanvas, $rootnames[index], imageExtension)
-        dispatch('toastNotice', 'Full image downloaded.')
+        downloadCanvasAsFile(downloadCanvas, $rootnames[index], imageExtension)
+        dispatch('toastNotice', $cropinfo.isDefined ? 'Crop area downloading.' : 'Full image downloading.')
       } else if (action === 'clipboard') {
-        copyCanvasToClipboard(fullCanvas)
+        copyCanvasToClipboard(downloadCanvas)
+        dispatch('toastNotice', $cropinfo.isDefined ? 'Crop area copied to clipboard' : 'Full image copied to clipboard.')
       }
     }
+  }
+  const quadOffsets = index => {
+    const offX = parseInt(index) === 1 || parseInt(index) === 3 ? 0 : imageWidth / 2
+    const offY = parseInt(index) === 1 || parseInt(index) === 2 ? 0 : imageHeight / 2
+    return { x1: offX, y1: offY }
   }
 </script>
 
@@ -184,12 +206,12 @@
           {#each [1, 2, 3, 4] as index}
             <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => (currentIndex = index)}>
               <div bind:this={canvasContainer} />
-              <ImageAction {mode} {index} on:expandaction={() => (expanded = !expanded)} on:imageaction={e => imageActionHandler(e.detail)} {aspectRatioCSS} />
+              <ImageAction {mode} {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => (expanded = !expanded)} on:imageaction={e => imageActionHandler(e.detail)} />
             </div>
           {/each}
         {:else}
           <div class="whole active" style={`background-image:url(${imageUrl});${aspectRatioCSS}`}>
-            <ImageAction {mode} {index} on:imageaction={e => imageActionHandler(e.detail)} />
+            <ImageAction {mode} {index} {frameSpecs} on:imageaction={e => imageActionHandler(e.detail)} />
           </div>
         {/if}
       </div>
@@ -212,7 +234,6 @@
     max-width: 100vw;
     max-height: 100vh;
   }
-
   .image-tracker {
     display: block;
     position: absolute;
@@ -223,7 +244,6 @@
     right: 0;
     bottom: 0;
   }
-
   .quadrant,
   .whole {
     position: absolute;
@@ -242,7 +262,6 @@
     width: calc(50% - var(--quadgap));
     height: calc(50% - var(--quadgap));
     margin: 0;
-    /* transition: margin 0.5s ease-in-out; */
     position: absolute;
     background-size: 200%;
     transition: margin 0.5s ease-in-out, width 0.5s ease-in-out, height 0.5s ease-in-out, opacity 0.375s ease-in-out, z-index 0s ease-in-out;
@@ -276,23 +295,15 @@
     margin-top: var(--quadgap);
     background-position: 100% 100%;
   }
-  .quadrant.active {
-    /* background: rgba(0, 0, 0, 0.5); */
-  }
   .quadrants.expanded .quadrant {
     width: 0;
     opacity: 0;
     transition: margin 0.75s ease-in-out, width 0.75s ease-in-out, height 0.75s ease-in-out, opacity 0.5s ease-in-out, z-index 0s ease-in-out;
-
     transition-delay: 0.375s, 0.375s, 0.375s, 0s, 0s;
   }
   .quadrants.expanded .quadrant.active {
     width: 100%;
     height: 100%;
-    /* top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0; */
     z-index: 1;
     opacity: 1;
   }
@@ -301,12 +312,9 @@
     background-size: 100%;
     width: 100%;
     height: 100%;
-    /* position: relative; */
     max-width: 100vw;
     max-height: 100vh;
-    /* display: block; */
   }
-
   .spinner-container {
     display: block;
     width: 100vw;

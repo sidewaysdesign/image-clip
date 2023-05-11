@@ -1,22 +1,30 @@
 <script>
   import { tick } from 'svelte'
-  import { rootnames } from './store-rootname.js'
+  import { rootnames, cropinfo } from './stores.js'
   import { createEventDispatcher } from 'svelte'
+  import CropControl from './CropControl.svelte'
 
-  // let rootname
   export let index
   export let mode
+  export let frameSpecs
 
-  // let currentName = rootname
   let isEditing = false
   let isFullscreen = false
+  let isCropping = false
   let editableDiv
 
   const dispatch = createEventDispatcher()
 
   let currentName = $rootnames[index]
   $: if (isEditing) tick().then(() => setCursorToEnd(editableDiv))
-
+  $: if ($cropinfo.cancelCrop) {
+    isCropping = false
+    cropinfo.update(state => ({ ...state, cancelCrop: false }))
+  }
+  const handleBlur = event => {
+    isCropping = false
+    isFullscreen = false
+  }
   const setCursorToEnd = element => {
     const range = document.createRange()
     range.selectNodeContents(element)
@@ -32,53 +40,85 @@
       return updatedArr
     })
   }
-  const startEditing = () => (isEditing = true)
-  const stopEditing = event => {
+  const startEditingFilename = () => (isEditing = true)
+  const stopEditingFilename = event => {
     updateRootnameStore(index, event.target.textContent)
     isEditing = false
   }
-  const toggleFullscreen = () => {
-    isFullscreen = !isFullscreen
-    dispatch('expandaction')
-  }
-  const handleExit = event => {
+  const handleFilenameExit = event => {
     if (event.type === 'keydown' && event.keyCode === 13) {
       event.preventDefault()
-      stopEditing(event)
+      stopEditingFilename(event)
     }
     if (event.type === 'blur') {
-      stopEditing(event)
+      stopEditingFilename(event)
     }
+  }
+  const toggleFullscreen = () => {
+    isFullscreen = !isFullscreen
+    if (!isFullscreen) isCropping = false
+    dispatch('expandaction')
+  }
+  const toggleCropping = () => {
+    isCropping = !isCropping
   }
 </script>
 
-<div class="image-action">
-  <div class="controls-wrapper">
-    <div class="filename-area">
-      {#if isEditing}
-        <div class="filename-text editing" bind:this={editableDiv} bind:textContent={currentName} on:blur={handleExit} on:keydown={handleExit} on:click|stopPropagation contenteditable>
-          {currentName}
-        </div>
-      {:else}
-        <div class="filename-text" on:click={startEditing}>{currentName}</div>
-      {/if}
-      <button class="icon-download" on:click={() => dispatch('imageaction', 'download')} />
+<div class:cropinprogress={$cropinfo.cropinprogress} on:blur={handleBlur}>
+  {#if isCropping}
+    <div class="crop-action">
+      <CropControl {frameSpecs} />
     </div>
-    <button class="icon-clipboard" on:click={() => dispatch('imageaction', 'clipboard')} />
-  </div>
-  {#if mode === 'quadrant'}
-    <button class={`isolate-control ${isFullscreen ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen()}>
-      <!-- <label class="tooltip">
-      {isFullscreen ? 'Maximise' : 'Minimize'}
-    </label> -->
-    </button>
   {/if}
+
+  <div class="image-action">
+    <div class="controls-wrapper">
+      <div class="filename-area">
+        {#if isEditing}
+          <div class="filename-text editing" tabindex="0" bind:this={editableDiv} bind:textContent={currentName} on:blur={handleFilenameExit} on:keydown={handleFilenameExit} on:click|stopPropagation contenteditable>
+            {currentName}
+          </div>
+        {:else}
+          <div class="filename-text" tabindex="0" on:focus={startEditingFilename} on:click={startEditingFilename}>{currentName}</div>
+        {/if}
+        <button class="icon-download" on:click={() => dispatch('imageaction', 'download')} />
+      </div>
+      <button class="icon-clipboard" on:click={() => dispatch('imageaction', 'clipboard')} />
+    </div>
+    <div class="isolate-controls">
+      {#if mode !== 'quadrant' || isFullscreen}
+        <button tabindex="1" class={`isolate-control ${isCropping ? 'icon-cropactive' : 'icon-cropinactive'}`} on:click={() => toggleCropping()} />
+      {/if}
+      {#if mode === 'quadrant'}
+        <button tabindex="2" class={`isolate-control ${isFullscreen ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen()} />
+      {/if}
+    </div>
+  </div>
 </div>
 
 <style>
-  .isolate-control {
+  .cropinprogress .crop-action {
+    z-index: 1;
+  }
+  .image-action {
+    transition: opacity 0.1s ease-in-out, display 0s linear;
+    transition-delay: 0ms, 0.1s;
+  }
+  .cropinprogress .image-action {
+    transition: opacity 0.1s ease-in-out, display 0s linear;
+    transition-delay: 0ms, 0.1s;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0 !important;
+    display: none;
+  }
+  .isolate-controls {
+    display: flex;
+    flex-direction: row;
     border: none;
     position: absolute;
+    gap: calc(var(--apppadding) / 2);
     top: 0;
     right: 0;
   }
@@ -95,6 +135,11 @@
     opacity: 0;
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
     transform: scale(0.97);
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .image-action > * {
+    pointer-events: all;
   }
   :global(.active) .image-action {
     visibility: visible;
@@ -122,10 +167,18 @@
   .icon-download {
     background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwYXRoIGQ9Im0xMC4yOTEsNDMuNTM5djcuNjM5YzAsMS45OTgsMS42MiwzLjYxOCwzLjYxOCwzLjYxOGgzNi4xODFjMS45OTgsMCwzLjYxOC0xLjYyLDMuNjE4LTMuNjE4di03LjYzOSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo0Ljc1cHg7Ii8+PHBvbHlsaW5lIHBvaW50cz0iNDMuNzAyIDMyLjQ0NSAzMiA0NC4wNzkgMjAuMjk4IDMyLjQ0NSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo0Ljc1cHg7Ii8+PGxpbmUgeDE9IjMyIiB5MT0iNDQuMDc5IiB4Mj0iMzIiIHkyPSIxMC4yMDMiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NC43NXB4OyIvPjwvc3ZnPg==');
   }
+  .icon-cropactive {
+    background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiPgogICAgPGRlZnM+CiAgICAgICAgPG1hc2sgaWQ9Im1hc2siPgogICAgICAgICAgICA8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0id2hpdGUiLz4KICAgICAgICAgICAgPHBvbHlsaW5lIHBvaW50cz0iNjAuMDMxIDQ2LjgyMSA4MS4xNzkgNDYuODIxIDgxLjE3OSA5MS4zOSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjZweCIvPgogICAgICAgICAgICA8bGluZSB4MT0iMzYuNjEiIHkxPSI0Ni44MjEiIHgyPSI0Ni44MjEiIHkyPSI0Ni44MjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI2cHgiLz4KICAgICAgICAgICAgPGxpbmUgeDE9IjgxLjE3OSIgeTE9IjgxLjE3OSIgeDI9IjkxLjM5IiB5Mj0iODEuMTc5IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iNnB4Ii8+CiAgICAgICAgICAgIDxwb2x5bGluZSBwb2ludHM9IjY3Ljk2OSA4MS4xNzkgNDYuODIxIDgxLjE3OSA0Ni44MjEgMzYuNjEiIGZpbGw9Im5vbmUiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI2cHgiLz4KICAgICAgICA8L21hc2s+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0id2hpdGUiIG1hc2s9InVybCgjbWFzaykiLz4KPC9zdmc+');
+  }
+  .icon-cropinactive {
+    background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiPgogICAgPHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHN0eWxlPSJmaWxsOm5vbmU7Ii8+CiAgICA8cG9seWxpbmUgcG9pbnRzPSI2MC4wMzEgNDYuODIxIDgxLjE3OSA0Ni44MjEgODEuMTc5IDkxLjM5IiBzdHlsZT0iZmlsbDpub25lOyBzdHJva2U6I2ZmZjsgc3Ryb2tlLWxpbmVjYXA6cm91bmQ7IHN0cm9rZS1saW5lam9pbjpyb3VuZDsgc3Ryb2tlLXdpZHRoOjZweDsiLz4KICAgIDxsaW5lIHgxPSIzNi42MSIgeTE9IjQ2LjgyMSIgeDI9IjQ2LjgyMSIgeTI9IjQ2LjgyMSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo2cHg7Ii8+CiAgICA8bGluZSB4MT0iODEuMTc5IiB5MT0iODEuMTc5IiB4Mj0iOTEuMzkiIHkyPSI4MS4xNzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NnB4OyIvPgogICAgPHBvbHlsaW5lIHBvaW50cz0iNjcuOTY5IDgxLjE3OSA0Ni44MjEgODEuMTc5IDQ2LjgyMSAzNi42MSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo2cHg7Ii8+Cjwvc3ZnPg==');
+  }
   .icon-clipboard,
   .icon-download,
   .icon-expand,
-  .icon-shrink {
+  .icon-shrink,
+  .icon-cropactive,
+  .icon-cropinactive {
     display: block;
     width: 2.625rem;
     height: 2.625rem;
@@ -135,14 +188,20 @@
     background-size: 2rem;
     background-position: center;
     transition: opacity 0.4s ease-in-out, background-color 0.2s ease-in-out;
-    background-color: rgba(123, 123, 123, 0.7);
+    background-color: rgba(80, 80, 80, 0.7);
     border-radius: 100px;
     border: none;
   }
+  .icon-cropactive,
+  .icon-cropinactive {
+    background-size: 3.5rem;
+  }
   :global(.active) .icon-expand,
-  :global(.active) .icon-shrink {
+  :global(.active) .icon-shrink,
+  :global(.active) .icon-cropactive,
+  :global(.active) .icon-cropinactive {
     visibility: visible;
-    opacity: 0.7;
+    opacity: 0.82;
   }
   .icon-clipboard:hover,
   .icon-download:hover,
@@ -151,8 +210,10 @@
   :global(.active) .icon-clipboard:hover,
   :global(.active) .icon-download:hover,
   :global(.active) .icon-expand:hover,
-  :global(.active) .icon-shrink:hover {
-    background-color: rgba(123, 123, 123, 0.92);
+  :global(.active) .icon-shrink:hover,
+  :global(.active) .icon-cropactive:hover,
+  :global(.active) .icon-cropinactive:hover {
+    background-color: rgba(80, 80, 80, 0.92);
     opacity: 1;
   }
   .filename-area {

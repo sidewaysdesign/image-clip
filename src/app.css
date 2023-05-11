@@ -25,16 +25,6 @@ body {
 * {
   box-sizing: border-box;
 }
-h1 {
-  position: fixed;
-  font-size: 0.88rem;
-  color: white;
-  font-weight: normal;
-  top: var(--apppadding);
-  left: var(--apppadding);
-  line-height: 1;
-  margin: 0;
-}
 
 .filename-edit {
   background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwb2x5Z29uIHBvaW50cz0iNDcuMjY4IDguNTc5IDU1LjQyMSAxNi43MzIgMjMuMzI3IDQ4LjgyNSA4LjU3OSA1NS40MjEgMTUuMTc1IDQwLjY3MyA0Ny4yNjggOC41NzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NXB4OyIvPjxsaW5lIHgxPSIzOS42NzUiIHkxPSIxNi4xNzMiIHgyPSI0Ny44MjciIHkyPSIyNC4zMjUiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NXB4OyIvPjwvc3ZnPg==');

@@ -1,22 +1,35 @@
 <script>
   export let mode
-
   const toggleMode = newMode => (mode = newMode)
 </script>
 
-<div class="mode-control-group">
-  <div class="mode-control mode-control-quadrant" on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="0" class:active={mode === 'quadrant'}>
-    <span class="tooltip">Quadrant</span>
-  </div>
-  <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="0" class:active={mode === 'whole'}>
-    <span class="tooltip">Whole Image</span>
-  </div>
-  <div class="mode-control mode-control-crop" on:click={() => toggleMode('crop')} aria-label="Whole Image" tabindex="0" class:active={mode === 'whole'}>
-    <span class="tooltip">Crop Image</span>
+<div class="mode-control-wrapper">
+  <div class="mode-control-group">
+    <div>
+      <h1 class="title">QuickTrim</h1>
+      <p class="byline">by: <a href="https://sidewaysdesign.com" target="blank">Sideways Design</a></p>
+    </div>
+    <div class="mode-control-container">
+      <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="1" class:active={mode === 'whole'}>
+        <span class="tooltip">Whole Image</span>
+      </div>
+      <div class="mode-control mode-control-quadrant" on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="0" class:active={mode === 'quadrant'}>
+        <span class="tooltip">Quadrants</span>
+      </div>
+    </div>
   </div>
 </div>
 
 <style>
+  .byline,
+  .byline a {
+    color: white;
+    opacity: 0.8;
+    text-decoration: none;
+    font-size: 0.82rem;
+    line-height: 0.9;
+    margin: 0.25rem 0 0 0;
+  }
   .mode-control:hover .tooltip {
     visibility: visible;
     opacity: 1;
@@ -30,10 +43,31 @@
   .mode-control-crop {
     background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwb2x5bGluZSBwb2ludHM9IjI4LjAzMSAxNC44MjEgNDkuMTc5IDE0LjgyMSA0OS4xNzkgNTkuMzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NnB4OyIvPjxsaW5lIHgxPSI0LjYxIiB5MT0iMTQuODIxIiB4Mj0iMTQuODIxIiB5Mj0iMTQuODIxIiBzdHlsZT0iZmlsbDpub25lOyBzdHJva2U6I2ZmZjsgc3Ryb2tlLWxpbmVjYXA6cm91bmQ7IHN0cm9rZS1saW5lam9pbjpyb3VuZDsgc3Ryb2tlLXdpZHRoOjZweDsiLz48bGluZSB4MT0iNDkuMTc5IiB5MT0iNDkuMTc5IiB4Mj0iNTkuMzkiIHkyPSI0OS4xNzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NnB4OyIvPjxwb2x5bGluZSBwb2ludHM9IjM1Ljk2OSA0OS4xNzkgMTQuODIxIDQ5LjE3OSAxNC44MjEgNC42MSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo2cHg7Ii8+PC9zdmc+');
   }
+  .mode-control-wrapper {
+    display: inline-block;
+  }
   .mode-control-group {
     display: flex;
     position: relative;
-    width: calc(var(--buttonsize) * 3);
+    min-width: calc(var(--buttonsize) * 2);
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: var(--apppadding);
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    gap: calc(var(--apppadding) * 0.75);
+    border-bottom-right-radius: calc(var(--buttonsize) * 0.7);
+  }
+  .mode-control-container {
+    display: flex;
+    gap: calc(var(--apppadding) / 4);
+  }
+  .mode-control-group .title {
+    font-size: 1rem;
+    color: white;
+    /* font-weight: normal; */
+    line-height: 1;
+    margin: 0;
   }
   .mode-control-quadrant,
   .mode-control-whole,
@@ -45,13 +79,12 @@
     background-position: center;
     cursor: pointer;
     position: relative;
-    margin: 0 5px;
+    margin: 0 0;
     transition: all 0.3s;
     opacity: 0.4;
     display: block;
   }
-  .mode-control-quadrant:hover,
-  .mode-control-whole:hover {
+  [class*='mode-control-']:hover {
     opacity: 1;
   }
   .active {

@@ -1,5 +1,5 @@
 <script>
-  import { onMount, onDestroy } from 'svelte'
+  import { onMount } from 'svelte'
   import { cropinfo } from './stores'
   export let frameSpecs
 
@@ -44,11 +44,6 @@
     svg.addEventListener('mousedown', onMouseDown)
     svg.addEventListener('mousemove', onMouseMove)
     svg.addEventListener('mouseup', onMouseUp)
-    svg.addEventListener('mouseenter', onMouseLeave)
-    svg.addEventListener('mouseenter', addKeyListener)
-    svg.addEventListener('mouseleave', onMouseLeave)
-    svg.addEventListener('mouseleave', removeKeyListener)
-    document.addEventListener('mouseup', onMouseUp)
     handles.forEach(h => {
       h.ref = document.querySelector(`svg #${h.id}`)
     })
@@ -56,25 +51,6 @@
     focusOverlay = document.querySelector(`svg #${focusOverlayName}`)
     focusOverlay.addEventListener('click', resetSVG)
   })
-  onDestroy(() => {
-    document.removeEventListener('keydown', handleKeydown)
-  })
-
-  const addKeyListener = () => document.addEventListener('keydown', handleKeydown)
-  const removeKeyListener = () => document.removeEventListener('keydown', handleKeydown)
-
-  function handleKeydown(event) {
-    if (!canIgnoreKeydown()) {
-      // allow key events because user is not editing text
-      if (event.key === 'Escape') $cropinfo.cancelCrop = true
-    }
-  }
-
-  function canIgnoreKeydown() {
-    const ae = document.activeElement
-    const cannotIgnore = ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT' || ae.tagName === 'FORM' || ae.contentEditable === 'true'
-    return cannotIgnore
-  }
 
   function onMouseDown(event) {
     svgRect = svg.getBoundingClientRect()
@@ -210,8 +186,7 @@
   }
   function resetSVG() {
     isFrameInUse = false
-    $cropinfo.isDefined = false
-    $cropinfo.cancelCrop = true
+    cropinfo.update(state => ({ ...state, isDefined: false, cancelCrop: true }))
     updateFrameArea(-100, -100, 0, 0)
     handles.forEach(handle => {
       handle.ref.setAttribute('x', -100)
@@ -222,7 +197,6 @@
 </script>
 
 <div class="crop-stage">
-  <!-- <p style="position:absolute;color:white;text-shadow:2px 2px 4px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black,2px 2px 12px black;">frameSpecs: {JSON.stringify(frameSpecs)}<br />relRect: {JSON.stringify(relativeRectState)}</p> -->
   <div bind:this={cropStats} class="crop-stats-container">
     {#if isFrameInUse || drawing || moving || resizing}
       <div class="crop-stats">

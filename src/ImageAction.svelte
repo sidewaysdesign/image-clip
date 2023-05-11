@@ -1,5 +1,5 @@
 <script>
-  import { tick } from 'svelte'
+  import { tick, onMount, onDestroy } from 'svelte'
   import { rootnames, cropinfo } from './stores.js'
   import { createEventDispatcher } from 'svelte'
   import CropControl from './CropControl.svelte'
@@ -19,8 +19,12 @@
   $: if (isEditing) tick().then(() => setCursorToEnd(editableDiv))
   $: if ($cropinfo.cancelCrop) {
     isCropping = false
-    cropinfo.update(state => ({ ...state, cancelCrop: false }))
+    cropinfo.update(state => ({ ...state, cancelCrop: false, isDefined: false }))
   }
+
+  onMount(() => document.addEventListener('keydown', handleKeydown))
+  onDestroy(() => document.removeEventListener('keydown', handleKeydown))
+
   const handleBlur = event => {
     isCropping = false
     isFullscreen = false
@@ -62,6 +66,32 @@
   const toggleCropping = () => {
     isCropping = !isCropping
   }
+  const handleDownloadAction = () => dispatch('imageaction', 'download')
+  const handleClipboardAction = () => dispatch('imageaction', 'clipboard')
+
+  function handleKeydown(event) {
+    if (canIgnoreKeydown()) return // don’t allow key presses to switch tools if user is editing text
+
+    const keyActions = {
+      c: () => handleClipboardAction(),
+      r: () => toggleCropping(),
+      f: () => toggleFullscreen(),
+      Enter: () => (event.shiftKey ? handleDownloadAction() : startEditingFilename()),
+      Escape: () => {
+        console.log('PRE ', JSON.parse(JSON.stringify($cropinfo)))
+
+        cropinfo.update(state => ({ ...state, cancelCrop: true, isDefined: false }))
+        console.log('POST ', JSON.parse(JSON.stringify($cropinfo)))
+      }
+    }
+    const action = keyActions[event.key]
+    if (action) action(event)
+  }
+  function canIgnoreKeydown() {
+    const ae = document.activeElement
+    const cannotIgnore = ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT' || ae.tagName === 'FORM' || ae.contentEditable === 'true'
+    return cannotIgnore
+  }
 </script>
 
 <div class:cropinprogress={$cropinfo.cropinprogress} on:blur={handleBlur}>
@@ -81,16 +111,16 @@
         {:else}
           <div class="filename-text" tabindex="0" on:focus={startEditingFilename} on:click={startEditingFilename}>{currentName}</div>
         {/if}
-        <button class="icon-download" on:click={() => dispatch('imageaction', 'download')} />
+        <button class="icon-download" on:click={handleDownloadAction} />
       </div>
-      <button class="icon-clipboard" on:click={() => dispatch('imageaction', 'clipboard')} />
+      <button class="icon-clipboard" on:click={handleClipboardAction} />
     </div>
     <div class="isolate-controls">
       {#if mode !== 'quadrant' || isFullscreen}
-        <button tabindex="1" class={`isolate-control ${isCropping ? 'icon-cropactive' : 'icon-cropinactive'}`} on:click={() => toggleCropping()} />
+        <button tabindex="0" class={`isolate-control ${isCropping ? 'icon-cropactive' : 'icon-cropinactive'}`} on:click={() => toggleCropping()} />
       {/if}
       {#if mode === 'quadrant'}
-        <button tabindex="2" class={`isolate-control ${isFullscreen ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen()} />
+        <button tabindex="0" class={`isolate-control ${isFullscreen ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen()} />
       {/if}
     </div>
   </div>
@@ -229,7 +259,7 @@
     bottom: 0;
     padding: 0;
     padding-right: 0.75rem;
-    padding-left: 1.5rem;
+    padding-left: 1.3125rem;
     flex-shrink: 1;
     flex-grow: 0;
     flex-basis: 100%;
@@ -240,7 +270,7 @@
     transform: translateY(0);
   }
   .filename-text {
-    color: white;
+    color: #ccc;
     font-size: 0.85rem;
     line-height: 1.33;
     text-align: left;
@@ -252,7 +282,12 @@
     transition: background-color 0.2s ease-in-out;
     cursor: pointer;
     outline: none;
+    caret-color: white;
+    /* transform: translateY(-0.5px); */
     /* max-width: calc(100vw - var(--toprowheight) * 2 + var(-apppadding)); */
+  }
+  .filename-text::selection {
+    background: rgb(45, 84, 97);
   }
   .filename-text::before {
     content: '';
@@ -263,8 +298,11 @@
     height: 100%;
   }
   .filename-text.editing {
+    color: #fff;
     outline: none;
     cursor: text;
-    background-color: rgba(255, 255, 255, 0.2);
+    outline: 1px dotted rgba(255, 255, 255, 0.5);
+    outline-offset: 0.5rem;
+    /* background-color: rgba(255, 255, 255, 0.2); */
   }
 </style>

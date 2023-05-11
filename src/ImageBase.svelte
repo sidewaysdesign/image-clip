@@ -173,12 +173,14 @@
     cropCtx.drawImage(canvas, cropinfo.x, cropinfo.y, cropinfo.width, cropinfo.height, 0, 0, cropinfo.width, cropinfo.height)
     return cropCanvas
   }
-  const imageActionHandler = async action => {
+  const imageActionHandler = action => {
     if (mode === 'quadrant' && !$cropinfo.isDefined) {
       processImage(action, currentIndex)
     } else {
+      // console.log('ImageBase $cropinfo: ', JSON.parse(JSON.stringify($cropinfo)))
       const downloadCanvas = $cropinfo.isDefined ? cropCanvas(fullCanvas, $cropinfo) : fullCanvas
       if (action === 'download') {
+        console.log('$cropinfo.isDefined: ', $cropinfo.isDefined)
         downloadCanvasAsFile(downloadCanvas, $rootnames[index], imageExtension)
         dispatch('toastNotice', $cropinfo.isDefined ? 'Crop area downloading.' : 'Full image downloading.')
       } else if (action === 'clipboard') {

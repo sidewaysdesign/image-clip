@@ -4,7 +4,7 @@ const defaultLocations = [
   // ... add more default locations here
 ]
 const getAdditionalLocations = () => {
-  const additionalLocations = localStorage.getItem('additionalLocations')
+  const additionalLocations = localStorage?.getItem('additionalLocations')
   return additionalLocations ? JSON.parse(additionalLocations) : []
 }
 

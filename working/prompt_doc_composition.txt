@@ -1,0 +1,25 @@
+I need to compose both a plugin description page and a help page for a chrome plugin that is invoked whenever only image is open in the browser.
+
+The plugin enables the user to quickly and easily save or trim an image in different ways. The help page needs to describe the features in order of hierarchy and importance.
+
+Your task is first to compose the help page. Note that the features described below need to be more concise than they are now, perhaps down to half of the length if possible while preserving salient details. Single-letter keyboard shortcuts should be lowercase.
+
+---
+
+Features
+
+There are two main modes for the application, one which works with the whole image, and another mode that splits the image into four equal quadrants. It should be mentioned in passing that the quadrant mode is useful for images from sources like Midjourney that combine 4 outputs into a single image. There are buttons and text fields to trim, save, copy to clipboard, and rename the file. Note than in quadrant mode, these controls are visible in each of the quadrants when the mouse hovers over the quadrant. Quadrant mode also has a button to expand the quadrant to fill the screen. Note that the trim feature is only available in quadrant mode when the quadrant is expanded.
+
+The filename control can edit the filename, and each quadrant can be named differently. By default, the quadrants have an appended suffix of "\_q1", "\_q2", etc., to distinguish one quadrant from another when saved.
+
+trim tool
+The trim tool allows the user to draw out a rectangular area of the image to be saved or copied. There are handles in each corner of a trimmed area to resize, and clicking and dragging anywhere within the trimmed area will move the trimmed area. Clicking outside the trimmed area deactivates the trim tool.
+
+Keyboard shortcuts
+esc - deactivate trim tool or dismiss help page
+c - copy to clipboard
+r - activate trim tool
+f - toggle fullscreen (in quadrant mode)
+Enter - edit filename
+Shift + Enter - save image
+Escape - dismiss help page or deactivate trim tool

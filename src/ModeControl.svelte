@@ -1,14 +1,32 @@
 <script>
+  import { trimInfo } from './stores.js'
+
+  import Help from './Help.svelte'
+
   export let mode
-  const toggleMode = newMode => (mode = newMode)
+
+  let tucked = false
+  let popupOpen = false
+
+  const toggleMode = newMode => {
+    mode = newMode
+    if (newMode === 'quadrant') trimInfo.update(state => ({ ...state, index: 1 }))
+    if (newMode === 'whole') trimInfo.update(state => ({ ...state, index: 0 }))
+  }
+  const handleHide = () => {
+    const modeControl = document.querySelector('.mode-control-wrapper')
+    modeControl.classList.add('tucked')
+  }
 </script>
 
-<div class="mode-control-wrapper">
+<div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>
   <div class="mode-control-group">
+    <div class="mode-control-hide1" on:click={() => (tucked = true)} />
     <div>
-      <h1 class="title">QuickTrim</h1>
-      <p class="byline">by: <a href="https://sidewaysdesign.com" target="blank">Sideways Design</a></p>
+      <div class="wordmark" />
+      <p class="byline"><a href="https://sidewaysdesign.com" target="blank">by Sideways Design</a></p>
     </div>
+    <div class="mode-control-info" on:click={() => (popupOpen = true)} />
     <div class="mode-control-container">
       <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="1" class:active={mode === 'whole'}>
         <span class="tooltip">Whole Image</span>
@@ -17,46 +35,107 @@
         <span class="tooltip">Quadrants</span>
       </div>
     </div>
+    <div class="mode-control-hide2" on:click={() => (tucked = false)} />
   </div>
 </div>
+{#if popupOpen}
+  <Help bind:popupOpen />
+{/if}
 
 <style>
+  .triminprogress {
+    opacity: 0;
+    transition: 0.2s opacity ease-in-out;
+  }
+  :root {
+    --tuckwidth: 1.5rem;
+  }
+  .mode-control-hide1,
+  .mode-control-hide2 {
+    height: 4.75rem;
+    opacity: 0.5;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: var(--tuckwidth) var(--tuckwidth);
+  }
+  .mode-control-info {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-right: 0.125rem;
+    background-color: rgba(100, 100, 100, 0);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 0.92rem 0.92rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    opacity: 0.7;
+    transition: all 0.12s ease-in-out;
+  }
+  .mode-control-info:hover {
+    opacity: 1;
+    /* background-color: rgba(100, 100, 100, 0.25); */
+  }
+  .mode-control-info:active {
+    opacity: 1;
+    background-color: rgba(100, 100, 100, 0.5);
+  }
+  .mode-control-hide1:hover,
+  .mode-control-hide2:hover {
+    opacity: 0.75;
+  }
+  .mode-control-hide1 {
+    width: var(--tuckwidth);
+  }
+  .mode-control-hide2 {
+    width: 0;
+    transition: opacity 0.25s ease-in-out;
+    transition-delay: 0.5s;
+    margin-right: -1rem;
+  }
+  .tucked {
+    transform: translateX(calc(-100% + var(--tuckwidth)));
+  }
+  .tucked .mode-control-hide2 {
+    width: var(--tuckwidth);
+    transition: width 0.25s ease-in-out, opacity 0.25s ease-in-out;
+  }
   .byline,
   .byline a {
     color: white;
-    opacity: 0.8;
     text-decoration: none;
     font-size: 0.82rem;
     line-height: 0.9;
-    margin: 0.25rem 0 0 0;
+    margin: 0;
+    transition: opacity 0.2s ease-in-out;
+    font-family: var(--fonts);
+    opacity: 0.8;
+  }
+  .byline a:hover {
+    opacity: 1;
   }
   .mode-control:hover .tooltip {
     visibility: visible;
     opacity: 1;
   }
-  .mode-control-quadrant {
-    background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgeD0iMzYuMjc4IiB5PSIxMC4zNzgiIHdpZHRoPSIxNy4zNDMiIGhlaWdodD0iMTcuMzQzIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNS45IDY0KSByb3RhdGUoLTkwKSIgc3R5bGU9ImZpbGw6I2ZmZjsiLz48cmVjdCB4PSIxMC4zNzgiIHk9IjEwLjM3OCIgd2lkdGg9IjE3LjM0MyIgaGVpZ2h0PSIxNy4zNDMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4LjEgMzguMSkgcm90YXRlKC0xODApIiBzdHlsZT0iZmlsbDojZmZmOyIvPjxyZWN0IHg9IjEwLjM3OCIgeT0iMzYuMjc4IiB3aWR0aD0iMTcuMzQzIiBoZWlnaHQ9IjE3LjM0MyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQgMjUuOSkgcm90YXRlKDkwKSIgc3R5bGU9ImZpbGw6I2ZmZjsiLz48cmVjdCB4PSIzNi4yNzgiIHk9IjM2LjI3OCIgd2lkdGg9IjE3LjM0MyIgaGVpZ2h0PSIxNy4zNDMiIHN0eWxlPSJmaWxsOiNmZmY7Ii8+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjwvc3ZnPg==');
-  }
-  .mode-control-whole {
-    background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxyZWN0IHg9IjEwLjM4IiB5PSIxMC4zOCIgd2lkdGg9IjQzLjI0IiBoZWlnaHQ9IjQzLjI0IiBzdHlsZT0iZmlsbDojZmZmOyIvPjwvc3ZnPg==');
-  }
-  .mode-control-crop {
-    background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBzdHlsZT0iZmlsbDpub25lOyIvPjxwb2x5bGluZSBwb2ludHM9IjI4LjAzMSAxNC44MjEgNDkuMTc5IDE0LjgyMSA0OS4xNzkgNTkuMzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NnB4OyIvPjxsaW5lIHgxPSI0LjYxIiB5MT0iMTQuODIxIiB4Mj0iMTQuODIxIiB5Mj0iMTQuODIxIiBzdHlsZT0iZmlsbDpub25lOyBzdHJva2U6I2ZmZjsgc3Ryb2tlLWxpbmVjYXA6cm91bmQ7IHN0cm9rZS1saW5lam9pbjpyb3VuZDsgc3Ryb2tlLXdpZHRoOjZweDsiLz48bGluZSB4MT0iNDkuMTc5IiB5MT0iNDkuMTc5IiB4Mj0iNTkuMzkiIHkyPSI0OS4xNzkiIHN0eWxlPSJmaWxsOm5vbmU7IHN0cm9rZTojZmZmOyBzdHJva2UtbGluZWNhcDpyb3VuZDsgc3Ryb2tlLWxpbmVqb2luOnJvdW5kOyBzdHJva2Utd2lkdGg6NnB4OyIvPjxwb2x5bGluZSBwb2ludHM9IjM1Ljk2OSA0OS4xNzkgMTQuODIxIDQ5LjE3OSAxNC44MjEgNC42MSIgc3R5bGU9ImZpbGw6bm9uZTsgc3Ryb2tlOiNmZmY7IHN0cm9rZS1saW5lY2FwOnJvdW5kOyBzdHJva2UtbGluZWpvaW46cm91bmQ7IHN0cm9rZS13aWR0aDo2cHg7Ii8+PC9zdmc+');
-  }
+
   .mode-control-wrapper {
     display: inline-block;
+    transition: transform 0.5s ease-in-out, opacity 0.2s ease-in-out;
   }
   .mode-control-group {
     display: flex;
     position: relative;
     min-width: calc(var(--buttonsize) * 2);
     flex-direction: row;
-    flex-wrap: wrap;
-    padding: var(--apppadding);
+    flex-wrap: nowrap;
+    padding: 0 var(--apppadding) 0 0;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.75);
     gap: calc(var(--apppadding) * 0.75);
     border-bottom-right-radius: calc(var(--buttonsize) * 0.7);
+    border: 1px solid white;
+    border-top-width: 0;
+    border-left-width: 0;
   }
   .mode-control-container {
     display: flex;
@@ -65,13 +144,12 @@
   .mode-control-group .title {
     font-size: 1rem;
     color: white;
-    /* font-weight: normal; */
     line-height: 1;
     margin: 0;
   }
   .mode-control-quadrant,
   .mode-control-whole,
-  .mode-control-crop {
+  .mode-control-trim {
     width: var(--buttonsize);
     height: var(--buttonsize);
     background-size: 100%;
@@ -90,6 +168,14 @@
   .active {
     opacity: 1;
     border: 1px;
-    background-color: (255, 255, 255, 0.4);
+    background-color: (255, 255, 255, 0.75);
+  }
+  .wordmark {
+    width: 122px;
+    height: 30px;
+    background-position: left center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin: 0 auto 0.375rem 0;
   }
 </style>

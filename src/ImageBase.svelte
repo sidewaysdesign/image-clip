@@ -1,6 +1,6 @@
 <script>
   import { onMount, afterUpdate, createEventDispatcher } from 'svelte'
-  import { rootnames, cropinfo } from './stores.js'
+  import { rootnames, trimInfo } from './stores.js'
   import ImageAction from './ImageAction.svelte'
 
   export let imageUrl
@@ -113,7 +113,6 @@
     saveAreaCanvas.width = saveAreaWidth
     saveAreaCanvas.height = saveAreaHeight
     let { sx, sy } = clipCoords(index, saveAreaWidth, saveAreaHeight)
-    console.log(saveAreaWidth)
     saveAreaCtx.drawImage(fullCanvas, sx, sy, saveAreaWidth, saveAreaHeight, 0, 0, saveAreaWidth, saveAreaHeight)
     const dataUrl = saveAreaCanvas.toDataURL('image/png')
 
@@ -121,7 +120,7 @@
     switch (action) {
       case 'download':
         saveImage(dataUrl, $rootnames[currentIndex], imageExtension)
-        dispatch('toastNotice', 'Image quadrant downloaded.')
+        dispatch('toastNotice', `Quadrant ${currentIndex} downloading.`)
         break
       case 'clipboard':
         copyImageToClipboard(dataUrl)
@@ -135,9 +134,10 @@
     }
   }
   const downloadCanvasAsFile = (canvas, currentName, imageExtension) => {
-    const dataUrl = canvas.toDataURL(`image/${imageExtension}`)
+    const dataUrl = canvas.toDataURL(`image/${imageExtension}`, 0.95)
     saveImage(dataUrl, currentName, imageExtension)
   }
+
   const saveImage = (dataUrl, currentName, imageExtension) => {
     const link = document.createElement('a')
     link.href = dataUrl
@@ -155,7 +155,7 @@
       .then(res => res.blob())
       .then(blob => {
         const clipboardItem = new ClipboardItem({ 'image/png': blob })
-        dispatch('toastNotice', 'Quadrant copied to clipboard.')
+        dispatch('toastNotice', `Quadrant ${currentIndex} copied to clipboard.`)
         return navigator.clipboard.write([clipboardItem])
       })
       .then(() => {
@@ -165,27 +165,25 @@
         console.error('Failed to copy quadrant of image to clipboard:', err)
       })
   }
-  const cropCanvas = (canvas, cropinfo) => {
-    const cropCanvas = document.createElement('canvas')
-    const cropCtx = cropCanvas.getContext('2d')
-    cropCanvas.width = cropinfo.width
-    cropCanvas.height = cropinfo.height
-    cropCtx.drawImage(canvas, cropinfo.x, cropinfo.y, cropinfo.width, cropinfo.height, 0, 0, cropinfo.width, cropinfo.height)
-    return cropCanvas
+  const trimCanvas = (canvas, trimInfo) => {
+    const trimCanvas = document.createElement('canvas')
+    const trimCtx = trimCanvas.getContext('2d')
+    trimCanvas.width = trimInfo.width
+    trimCanvas.height = trimInfo.height
+    trimCtx.drawImage(canvas, trimInfo.x, trimInfo.y, trimInfo.width, trimInfo.height, 0, 0, trimInfo.width, trimInfo.height)
+    return trimCanvas
   }
   const imageActionHandler = action => {
-    if (mode === 'quadrant' && !$cropinfo.isDefined) {
+    if (mode === 'quadrant' && !$trimInfo.isDefined) {
       processImage(action, currentIndex)
     } else {
-      // console.log('ImageBase $cropinfo: ', JSON.parse(JSON.stringify($cropinfo)))
-      const downloadCanvas = $cropinfo.isDefined ? cropCanvas(fullCanvas, $cropinfo) : fullCanvas
+      const downloadCanvas = $trimInfo.isDefined ? trimCanvas(fullCanvas, $trimInfo) : fullCanvas
       if (action === 'download') {
-        console.log('$cropinfo.isDefined: ', $cropinfo.isDefined)
         downloadCanvasAsFile(downloadCanvas, $rootnames[index], imageExtension)
-        dispatch('toastNotice', $cropinfo.isDefined ? 'Crop area downloading.' : 'Full image downloading.')
+        dispatch('toastNotice', $trimInfo.isDefined ? `Trim area downloading.` : 'Full image downloading.')
       } else if (action === 'clipboard') {
         copyCanvasToClipboard(downloadCanvas)
-        dispatch('toastNotice', $cropinfo.isDefined ? 'Crop area copied to clipboard' : 'Full image copied to clipboard.')
+        dispatch('toastNotice', $trimInfo.isDefined ? `Trim area copied to clipboard` : 'Full image copied to clipboard.')
       }
     }
   }
@@ -194,11 +192,15 @@
     const offY = parseInt(index) === 1 || parseInt(index) === 2 ? 0 : imageHeight / 2
     return { x1: offX, y1: offY }
   }
+  const indexSwitch = index => {
+    currentIndex = index
+    trimInfo.update(state => ({ ...state, index: index }))
+  }
 </script>
 
 {#if isLoading}
   <div class="spinner-container">
-    <div class="spinner" />
+    <div class="spinner">Loading...</div>
   </div>
 {:else if imageWidth && imageHeight}
   <div class="image-base">
@@ -206,13 +208,13 @@
       <div class="image-tracker" class:expanded class:quadrants={mode === 'quadrant'}>
         {#if mode === 'quadrant'}
           {#each [1, 2, 3, 4] as index}
-            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => (currentIndex = index)}>
+            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => indexSwitch(index)}>
               <div bind:this={canvasContainer} />
               <ImageAction {mode} {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => (expanded = !expanded)} on:imageaction={e => imageActionHandler(e.detail)} />
             </div>
           {/each}
         {:else}
-          <div class="whole active" style={`background-image:url(${imageUrl});${aspectRatioCSS}`}>
+          <div class="whole active" style={`background-image:url(${imageUrl});${aspectRatioCSS}`} on:mouseenter={() => indexSwitch(index)}>
             <ImageAction {mode} {index} {frameSpecs} on:imageaction={e => imageActionHandler(e.detail)} />
           </div>
         {/if}
@@ -297,6 +299,57 @@
     margin-top: var(--quadgap);
     background-position: 100% 100%;
   }
+  @keyframes quadsize-intro {
+    0% {
+      width: 50%;
+      height: 50%;
+    }
+    100% {
+      width: calc(50% - var(--quadgap));
+      height: calc(50% - var(--quadgap));
+    }
+  }
+  @keyframes margin-topleft-intro {
+    0% {
+      margin-right: 0;
+      margin-bottom: 0;
+    }
+    100% {
+      margin-right: var(--quadgap);
+      margin-bottom: var(--quadgap);
+    }
+  }
+  @keyframes margin-topright-intro {
+    0% {
+      margin-left: 0;
+      margin-bottom: 0;
+    }
+    100% {
+      margin-left: var(--quadgap);
+      margin-bottom: var(--quadgap);
+    }
+  }
+  @keyframes margin-bottomleft-intro {
+    0% {
+      margin-right: 0;
+      margin-top: 0;
+    }
+    100% {
+      margin-right: var(--quadgap);
+      margin-top: var(--quadgap);
+    }
+  }
+  @keyframes margin-bottomright-intro {
+    0% {
+      margin-left: 0;
+      margin-top: 0;
+    }
+    100% {
+      margin-left: var(--quadgap);
+      margin-top: var(--quadgap);
+    }
+  }
+
   .quadrants.expanded .quadrant {
     width: 0;
     opacity: 0;
@@ -318,17 +371,39 @@
     max-height: 100vh;
   }
   .spinner-container {
-    display: block;
+    position: fixed;
+    display: flex;
     width: 100vw;
     height: 100vh;
+    align-items: center;
+    justify-content: center;
   }
   .spinner {
-    border: 4px solid #f3f3f3;
+    position: relative;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--fonts);
+    font-size: 0.9rem;
+  }
+  .spinner:after {
+    position: absolute;
+    content: '';
+    border: 5px solid #f3f3f3;
     border-radius: 50%;
-    border-top: 4px solid #3498db;
-    width: 40px;
-    height: 40px;
-    animation: spin 2s linear infinite;
+    border-top-color: #c72035;
+    border-right-color: #f7903e;
+    border-bottom-color: #f05872;
+    border-left-color: #faaa42;
+    width: 10vw;
+    height: 10vw;
+    min-width: 90px;
+    min-height: 90px;
+    animation: spin 4s linear infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   canvas {
     width: 100%;
@@ -347,4 +422,22 @@
       transform: rotate(360deg);
     }
   }
+
+  /* @keyframes colorshift {
+    0% {
+      border-top-color: #c72035;
+    }
+    25% {
+      border-top-color: #f7903e;
+    }
+    50% {
+      border-top-color: #f05872;
+    }
+    75% {
+      border-top-color: #faaa42;
+    }
+    100% {
+      border-top-color: #c72035;
+    }
+  } */
 </style>

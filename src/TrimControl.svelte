@@ -1,9 +1,9 @@
 <script>
   import { onMount } from 'svelte'
-  import { cropinfo } from './stores'
+  import { trimInfo } from './stores'
   export let frameSpecs
 
-  let svg, svgRect, focusOverlay, cropStats, rectObj
+  let svg, svgRect, focusOverlay, trimStats, rectObj
   let moveHandle
   let imageWidth = frameSpecs.width
   let imageHeight = frameSpecs.height
@@ -73,7 +73,7 @@
       offsetY = event.clientY - rectState.y
       moving = true
     }
-    cropinfo.update(state => ({ ...state, cropinprogress: true }))
+    trimInfo.update(state => ({ ...state, triminprogress: true }))
   }
   function onMouseMove(e) {
     let newX, newY, newWidth, newHeight
@@ -118,7 +118,7 @@
     }
     if (drawing || resizing || moving) {
       updateFrameArea(newX, newY, newWidth, newHeight)
-      updateCropStatsPanel(newX + newWidth / 2, newY + newHeight / 2)
+      updatetrimStatsPanel(newX + newWidth / 2, newY + newHeight / 2)
       rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
     }
   }
@@ -127,8 +127,8 @@
     resizing = false
     moving = false
     isFrameInUse = rectState.width && rectState.height ? true : false
-    if (isFrameInUse) cropinfo.update(state => ({ ...state, ...relativeRectState }))
-    cropinfo.update(state => ({ ...state, isDefined: isFrameInUse, cropinprogress: false }))
+    if (isFrameInUse) trimInfo.update(state => ({ ...state, ...relativeRectState }))
+    trimInfo.update(state => ({ ...state, isDefined: isFrameInUse, triminprogress: false }))
   }
   function onMouseLeave(event) {
     if (drawing || resizing) {
@@ -148,9 +148,9 @@
       rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
     }
   }
-  function updateCropStatsPanel(x, y) {
-    cropStats.style.left = `${x}px`
-    cropStats.style.top = `${y}px`
+  function updatetrimStatsPanel(x, y) {
+    trimStats.style.left = `${x}px`
+    trimStats.style.top = `${y}px`
   }
   function updateFrameArea(x, y, width, height) {
     rectObj.setAttribute('x', x)
@@ -186,7 +186,7 @@
   }
   function resetSVG() {
     isFrameInUse = false
-    cropinfo.update(state => ({ ...state, isDefined: false, cancelCrop: true }))
+    trimInfo.update(state => ({ ...state, isDefined: false, cancelTrim: true }))
     updateFrameArea(-100, -100, 0, 0)
     handles.forEach(handle => {
       handle.ref.setAttribute('x', -100)
@@ -196,10 +196,10 @@
   }
 </script>
 
-<div class="crop-stage">
-  <div bind:this={cropStats} class="crop-stats-container">
+<div class="trim-stage">
+  <div bind:this={trimStats} class="trim-stats-container">
     {#if isFrameInUse || drawing || moving || resizing}
-      <div class="crop-stats">
+      <div class="trim-stats">
         <p><span>x:</span>{Math.floor(rectState.x)}</p>
         <p><span>y:</span>{Math.floor(rectState.y)}</p>
         <p><span>w:</span>{Math.floor(rectState.width)}</p>
@@ -232,21 +232,21 @@
     background-color: rgba(0, 0, 0, 0.75);
     /* transition: background-color 0.1s; */
   }
-  .crop-stage {
+  .trim-stage {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
   }
-  .crop-stats-container {
+  .trim-stats-container {
     position: absolute;
     width: 0;
     height: 0;
     overflow: visible;
     /* border: 1px solid blue; */
   }
-  .crop-stats {
+  .trim-stats {
     position: absolute;
     display: grid;
     padding: 0.375rem 0.5rem;
@@ -259,14 +259,14 @@
     row-gap: 0.5rem;
     border-radius: 0.5rem;
   }
-  .crop-stats p {
+  .trim-stats p {
     white-space: nowrap;
     color: white;
     line-height: 0.75;
     margin: 0;
     text-transform: uppercase;
   }
-  .crop-stats span {
+  .trim-stats span {
     opacity: 0.6;
     display: inline-block;
     width: 2ch;

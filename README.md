@@ -1,3 +1,3 @@
-# Image Clip
+# QuickTrim
 
-A Chrome plugin to enable quick saving or copying of all or part of an image. Automatically opens when an image is opened in Chrome.
+An extension to efficiently trim, save and copy to the clipboard images opened directly in the browser window.

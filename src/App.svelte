@@ -1,15 +1,14 @@
 <script>
+  import { SvelteToast, toast } from '@zerodevx/svelte-toast'
+  import { rootnames, trimInfo } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
-  import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames } from './stores.js'
 
   let isFullscreen = false
-  // let mode = 'quadrant'
   let mode = 'whole'
   let quadsuffix = '_q'
-  // let imageUrl = 'https://media.discordapp.net/attachments/1060231236733382769/1103726734861410496/sidewaysdesign_closeup_photo_of_a_bird_made_of_canadian_money.__bbddebb9-1fbe-4543-a106-ac19d5d52634.png'
   let imageUrl = 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
+  imageUrl = 'https://media.cnn.com/api/v1/images/stellar/prod/230309204721-russian-mil-mi-8-helicopter-file-restricted.jpg'
 
   const toastOptions = { duration: 1500, intro: { x: 256 } }
   const toastHandler = e => toast.push(e.detail, toastOptions)
@@ -43,7 +42,7 @@
     </div>
   </div>
   <ModeControl bind:mode />
-  <div class="close-button" />
+  <!-- <div class="close-button" /> -->
 </main>
 <SvelteToast />
 

@@ -3,20 +3,21 @@
 
   import Help from './Help.svelte'
 
-  export let mode
+  let mode
 
   let tucked = false
   let popupOpen = false
 
   const toggleMode = newMode => {
-    mode = newMode
-    if (newMode === 'quadrant') trimInfo.update(state => ({ ...state, index: 1 }))
-    if (newMode === 'whole') trimInfo.update(state => ({ ...state, index: 0 }))
+    // mode = newMode
+    if (newMode === 'quadrant') trimInfo.update(state => ({ ...state, index: 1, mode: 'quadrant' }))
+    if (newMode === 'whole') trimInfo.update(state => ({ ...state, index: 0, mode: 'whole', expanded: false }))
   }
   const handleHide = () => {
     const modeControl = document.querySelector('.mode-control-wrapper')
     modeControl.classList.add('tucked')
   }
+  $: mode = $trimInfo.mode
 </script>
 
 <div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>
@@ -59,13 +60,14 @@
     background-size: var(--tuckwidth) var(--tuckwidth);
   }
   .mode-control-info {
-    width: 1.125rem;
-    height: 1.125rem;
-    margin-right: 0.125rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: -0.125rem;
+    margin-left: -0.1875rem;
     background-color: rgba(100, 100, 100, 0);
-    background-position: center;
+    background-position: 49% 40%;
     background-repeat: no-repeat;
-    background-size: 0.92rem 0.92rem;
+    background-size: 0.9rem 0.9rem;
     border-radius: 100px;
     border: 1px solid rgba(255, 255, 255, 0.75);
     opacity: 0.7;

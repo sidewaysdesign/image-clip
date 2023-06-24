@@ -97,13 +97,13 @@
     <div class="help-text">
       <h4 class="sm-center gap-top">Keyboard Shortcuts</h4>
       <ul class="nobullets shortcut-list">
+        <li><span class="keycap">M</span> Toggle between whole and quadrant modes</li>
         <li><span class="keycap">F</span> Toggle fullscreen mode (in quadrant mode)</li>
         <li><span class="keycap">T</span> Activate trim tool</li>
         <li><span class="keycap">C</span> Copy full image or trim area to clipboard</li>
         <li><span class="keycap">D</span> Download full image or trim area.</li>
         <li><span class="keycap">Esc</span> Deactivate trim tool</li>
         <li><span class="keycap">Enter</span> Edit filename</li>
-        <!-- <li><span class="keycap keycap-nomargin">Shift</span> + <span class="keycap">Enter</span> Download image or trimming area.</li> -->
       </ul>
     </div>
   </div>
@@ -236,10 +236,6 @@
   }
   .icon-close:hover {
     opacity: 1;
-  }
-  h2 {
-    text-align: center;
-    margin-top: 0;
   }
   .keycap {
     display: inline-block;

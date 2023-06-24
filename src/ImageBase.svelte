@@ -8,7 +8,7 @@
   export let currentIndex
   export let mode
 
-  let index = currentIndex
+  // let index = currentIndex
 
   let isLoading = true
   let imageWidth
@@ -19,6 +19,28 @@
   let aspectRatioCSS = ''
   let frameSpecs
 
+  $: index = $trimInfo.index
+  $: if (!$trimInfo.expanded) expanded = false
+
+  onMount(async () => {
+    const imageObj = await instantiateImageProps(imageUrl)
+    frameSpecs = {
+      width: imageObj.width,
+      height: imageObj.height,
+      x1: 0,
+      y1: 0,
+      factor: 1
+    }
+    imageWidth = imageObj.width
+    imageHeight = imageObj.height
+    fullCanvas = imageObj.canvas
+    aspectRatioCSS = getAspectRatio(imageWidth, imageHeight)
+  })
+  afterUpdate(() => {
+    if (fullCanvas && canvasContainer && mode === 'whole') {
+      canvasContainer.appendChild(fullCanvas)
+    }
+  })
   const getImageRef = async url => {
     const img = new Image()
     img.crossOrigin = 'anonymous' // Enable CORS for the image request
@@ -45,25 +67,6 @@
     }
   }
   const dispatch = createEventDispatcher()
-  onMount(async () => {
-    const imageObj = await instantiateImageProps(imageUrl)
-    frameSpecs = {
-      width: imageObj.width,
-      height: imageObj.height,
-      x1: 0,
-      y1: 0,
-      factor: 1
-    }
-    imageWidth = imageObj.width
-    imageHeight = imageObj.height
-    fullCanvas = imageObj.canvas
-    aspectRatioCSS = getAspectRatio(imageWidth, imageHeight)
-  })
-  afterUpdate(() => {
-    if (fullCanvas && canvasContainer && mode === 'whole') {
-      canvasContainer.appendChild(fullCanvas)
-    }
-  })
   const getAspectRatio = (width, height) => {
     const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b))
     const divisor = gcd(width, height)
@@ -137,7 +140,6 @@
     const dataUrl = canvas.toDataURL(`image/${imageExtension}`, 0.95)
     saveImage(dataUrl, currentName, imageExtension)
   }
-
   const saveImage = (dataUrl, currentName, imageExtension) => {
     const link = document.createElement('a')
     link.href = dataUrl
@@ -193,9 +195,11 @@
     return { x1: offX, y1: offY }
   }
   const indexSwitch = index => {
+    if (expanded) return
     currentIndex = index
     trimInfo.update(state => ({ ...state, index: index }))
   }
+  const expandHandler = () => (expanded = !expanded)
 </script>
 
 {#if isLoading}
@@ -207,15 +211,17 @@
     <div class="image-shim" style={`${aspectRatioCSS}`}>
       <div class="image-tracker" class:expanded class:quadrants={mode === 'quadrant'}>
         {#if mode === 'quadrant'}
-          {#each [1, 2, 3, 4] as index}
-            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => indexSwitch(index)}>
-              <div bind:this={canvasContainer} />
-              <ImageAction {mode} {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => (expanded = !expanded)} on:imageaction={e => imageActionHandler(e.detail)} />
-            </div>
-          {/each}
+          {#key $trimInfo.index}
+            {#each [1, 2, 3, 4] as index}
+              <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => indexSwitch(index)}>
+                <div bind:this={canvasContainer} />
+                <ImageAction {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => expandHandler()} on:imageaction={e => imageActionHandler(e.detail)} />
+              </div>
+            {/each}
+          {/key}
         {:else}
           <div class="whole active" style={`background-image:url(${imageUrl});${aspectRatioCSS}`} on:mouseenter={() => indexSwitch(index)}>
-            <ImageAction {mode} {index} {frameSpecs} on:imageaction={e => imageActionHandler(e.detail)} />
+            <ImageAction {index} {frameSpecs} on:imageaction={e => imageActionHandler(e.detail)} />
           </div>
         {/if}
       </div>

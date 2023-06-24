@@ -5,9 +5,9 @@
   import TrimControl from './TrimControl.svelte'
 
   export let index
-  export let mode
   export let frameSpecs
 
+  let mode
   let isEditing = false
   let isFullscreen = false
   let isTrimming = false
@@ -21,6 +21,8 @@
     isTrimming = false
     trimInfo.update(state => ({ ...state, cancelTrim: false, isDefined: false }))
   }
+  $: mode = $trimInfo.mode
+
   onMount(() => document.addEventListener('keydown', handleKeydown))
   onDestroy(() => document.removeEventListener('keydown', handleKeydown))
 
@@ -28,6 +30,7 @@
     isTrimming = false
     isFullscreen = false
   }
+
   const setCursorToEnd = element => {
     const range = document.createRange()
     range.selectNodeContents(element)
@@ -36,6 +39,7 @@
     selection.removeAllRanges()
     selection.addRange(range)
   }
+
   const updateRootnameStore = (index, newValue) => {
     rootnames.update(arr => {
       const updatedArr = [...arr]
@@ -49,11 +53,6 @@
     updateRootnameStore(index, event.target.textContent)
     isEditing = false
   }
-  // const handleFilenameExit = event => {
-  //   if (event.type === 'blur') {
-  //     stopEditingFilename(event)
-  //   }
-  // }
   const toggleFullscreen = () => {
     isFullscreen = !isFullscreen
     if (!isFullscreen) isTrimming = false
@@ -70,29 +69,55 @@
     if (index !== $trimInfo.index) return
     dispatch('imageaction', 'clipboard')
   }
+  const xhandleKeyDown = event => {
+    return
+  }
+  const handleViewQuadrant = keyedIndex => {
+    // trimInfo.update(state => ({ ...state, index: keyedIndex, mode: 'quadrant' }))
 
+    if (!isFullscreen) isTrimming = false
+    $trimInfo.isExpanded = true
+    // trimInfo.update(state => ({ ...state, index: keyedIndex, mode: 'quadrant' }))
+    dispatch('expandaction')
+  }
   const handleKeydown = event => {
     if (isEditing && event.key === 'Enter') {
-      console.log('handleKeydown', event.key)
       stopEditingFilename(event)
       return
     }
     if (canIgnoreKeydown()) return // don’t allow key presses to switch tools if user is editing text
 
+    //  if (newMode === 'quadrant') trimInfo.update(state => ({ ...state, index: 1 }))
+    // if (newMode === 'whole') trimInfo.update(state => ({ ...state, index: 0 }))
+
     const keyActions = {
+      1: () => handleViewQuadrant(1),
       c: () => handleClipboardAction(),
       t: () => toggleTrimming(),
       f: () => toggleFullscreen(),
       d: () => (event.shiftKey ? handleDownloadAction() : handleDownloadAction()),
+      m: () => (index !== 0 ? trimInfo.update(state => ({ ...state, index: 0, mode: 'whole' })) : trimInfo.update(state => ({ ...state, index: 1, mode: 'quadrant' }))),
       Enter: () => startEditingFilename(),
       Escape: () => {
         trimInfo.update(state => ({ ...state, cancelTrim: true, isDefined: false }))
+      },
+      '[': () => {
+        if (index === 0 || !isFullscreen) return
+        const newIndex = index === 1 ? 4 : (index - 1) % 4
+        trimInfo.update(state => ({ ...state, index: newIndex }))
+      },
+      ']': () => {
+        if (index === 0 || !isFullscreen) return
+        const newIndex = index === 4 ? 1 : (index + 1) % 5
+        trimInfo.update(state => ({ ...state, index: newIndex }))
       }
     }
-    event.preventDefault()
 
     const action = keyActions[event.key]
-    if (action) action(event)
+    if (action) {
+      event.preventDefault()
+      action(event)
+    }
   }
   function canIgnoreKeydown() {
     const ae = document.activeElement
@@ -111,6 +136,7 @@
   <div class="image-action">
     <div class="controls-wrapper">
       <div class="filename-area">
+        <!-- <h1 style="position:fixed;left:50%;top:50%;color:white">{index}</h1> -->
         {#if isEditing}
           <div class="filename-text editing" tabindex="0" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable>
             {currentName}

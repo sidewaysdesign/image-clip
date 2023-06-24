@@ -5,10 +5,16 @@
   import ImageBase from './ImageBase.svelte'
 
   let isFullscreen = false
-  let mode = 'whole'
+  // let mode = 'whole'
   let quadsuffix = '_q'
-  let imageUrl = 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
-  imageUrl = 'https://media.cnn.com/api/v1/images/stellar/prod/230309204721-russian-mil-mi-8-helicopter-file-restricted.jpg'
+  let imageUrl
+  let urlParams
+
+  if (window.location.search) {
+    urlParams = new URLSearchParams(window.location.search)
+  }
+  imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
+  // imageUrl = 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
 
   const toastOptions = { duration: 1500, intro: { x: 256 } }
   const toastHandler = e => toast.push(e.detail, toastOptions)
@@ -21,6 +27,7 @@
 
   const { rootname, imageExtension } = splitFileNameFromUrl(imageUrl)
   const handleFullscreenChange = event => (isFullscreen = event.detail)
+  $: mode = $trimInfo.mode
 
   let state = {
     currentMode: mode,

@@ -1,11 +1,9 @@
 <script>
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames, trimInfo } from './stores.js'
+  import { rootnames, trimInfo, isFullScreen } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
 
-  let isFullscreen = false
-  // let mode = 'whole'
   let quadsuffix = '_q'
   let imageUrl
   let urlParams
@@ -26,7 +24,7 @@
   }
 
   const { rootname, imageExtension } = splitFileNameFromUrl(imageUrl)
-  const handleFullscreenChange = event => (isFullscreen = event.detail)
+
   $: mode = $trimInfo.mode
 
   let state = {
@@ -44,11 +42,11 @@
 
 <main>
   <div class="image-wrapper">
-    <div class="image-stage" class:fullscreen={isFullscreen}>
+    <div class="image-stage" class:fullscreen={$isFullScreen}>
       <ImageBase {imageUrl} {currentIndex} on:toastNotice={toastHandler} {mode} {imageExtension} />
     </div>
   </div>
-  <ModeControl bind:mode />
+  <ModeControl />
   <!-- <div class="close-button" /> -->
 </main>
 <SvelteToast />

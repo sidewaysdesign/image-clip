@@ -1,7 +1,8 @@
 <script>
   import { onMount, afterUpdate, createEventDispatcher } from 'svelte'
-  import { rootnames, trimInfo } from './stores.js'
+  import { rootnames, trimInfo, isTransitioning, lastHovered } from './stores.js'
   import ImageAction from './ImageAction.svelte'
+  import KeyEventDispatcher from './KeyEventsDispatcher.svelte'
 
   export let imageUrl
   export let imageExtension
@@ -20,7 +21,7 @@
   let frameSpecs
 
   $: index = $trimInfo.index
-  $: if (!$trimInfo.expanded) expanded = false
+  $: expanded = $trimInfo.expanded
 
   onMount(async () => {
     const imageObj = await instantiateImageProps(imageUrl)
@@ -41,6 +42,20 @@
       canvasContainer.appendChild(fullCanvas)
     }
   })
+
+  const transitionStart = e => {
+    if (e.target === e.currentTarget) {
+      console.log('transitionStart TRUE')
+      isTransitioning.set(true)
+    }
+  }
+  const transitionEnd = e => {
+    if (e.target === e.currentTarget) {
+      isTransitioning.set(false)
+      console.log('$lastHovered:', $lastHovered)
+      if ($lastHovered && $lastHovered !== currentIndex) indexSwitch($lastHovered)
+    }
+  }
   const getImageRef = async url => {
     const img = new Image()
     img.crossOrigin = 'anonymous' // Enable CORS for the image request
@@ -199,8 +214,21 @@
     currentIndex = index
     trimInfo.update(state => ({ ...state, index: index }))
   }
-  const expandHandler = () => (expanded = !expanded)
+  const expandHandler = () => {
+    // expanded = !expanded
+    trimInfo.update(state => ({ ...state, expanded: !state.expanded }))
+  }
+
+  const switchHandler = index => {
+    if ($isTransitioning) {
+      lastHovered.set(index)
+    } else {
+      indexSwitch(index)
+    }
+  }
 </script>
+
+<KeyEventDispatcher {index} />
 
 {#if isLoading}
   <div class="spinner-container">
@@ -211,14 +239,12 @@
     <div class="image-shim" style={`${aspectRatioCSS}`}>
       <div class="image-tracker" class:expanded class:quadrants={mode === 'quadrant'}>
         {#if mode === 'quadrant'}
-          {#key $trimInfo.index}
-            {#each [1, 2, 3, 4] as index}
-              <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => indexSwitch(index)}>
-                <div bind:this={canvasContainer} />
-                <ImageAction {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => expandHandler()} on:imageaction={e => imageActionHandler(e.detail)} />
-              </div>
-            {/each}
-          {/key}
+          {#each [1, 2, 3, 4] as index}
+            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => switchHandler(index)} on:transitionstart={transitionStart} on:transitionend={transitionEnd}>
+              <div bind:this={canvasContainer} />
+              <ImageAction {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => expandHandler()} on:imageaction={e => imageActionHandler(e.detail)} />
+            </div>
+          {/each}
         {:else}
           <div class="whole active" style={`background-image:url(${imageUrl});${aspectRatioCSS}`} on:mouseenter={() => indexSwitch(index)}>
             <ImageAction {index} {frameSpecs} on:imageaction={e => imageActionHandler(e.detail)} />
@@ -428,22 +454,4 @@
       transform: rotate(360deg);
     }
   }
-
-  /* @keyframes colorshift {
-    0% {
-      border-top-color: #c72035;
-    }
-    25% {
-      border-top-color: #f7903e;
-    }
-    50% {
-      border-top-color: #f05872;
-    }
-    75% {
-      border-top-color: #faaa42;
-    }
-    100% {
-      border-top-color: #c72035;
-    }
-  } */
 </style>

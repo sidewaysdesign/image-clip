@@ -7,7 +7,6 @@ export const trimInfo = writable({
   triminprogress: false,
   isDefined: false,
   cancelTrim: false,
-  expandIndex: 1,
   index: 0,
   x: 0,
   y: 0,
@@ -16,3 +15,7 @@ export const trimInfo = writable({
   mode: 'whole'
 })
 export const isTrimming = writable(false)
+export const isEditing = writable(false)
+export const isFullScreen = writable(false)
+export const isTransitioning = writable(false)
+export const lastHovered = writable(null)

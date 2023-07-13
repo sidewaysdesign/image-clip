@@ -30,6 +30,7 @@
     { id: 'bottom-right', cursor: 'se-resize' }
   ]
   const handleSize = 14
+
   $: {
     if (svg) {
       relativeRectState = {
@@ -40,6 +41,7 @@
       }
     }
   }
+
   onMount(() => {
     svg.addEventListener('mousedown', onMouseDown)
     svg.addEventListener('mousemove', onMouseMove)
@@ -52,7 +54,9 @@
     focusOverlay.addEventListener('click', resetSVG)
   })
 
-  function onMouseDown(event) {
+  async function onMouseDown(event) {
+    console.log('TRIM MOUSEDOWN')
+
     svgRect = svg.getBoundingClientRect()
     screenOffsetX = svgRect.left
     screenOffsetY = svgRect.top
@@ -73,7 +77,9 @@
       offsetY = event.clientY - rectState.y
       moving = true
     }
+
     trimInfo.update(state => ({ ...state, triminprogress: true }))
+    // debugger
   }
   function onMouseMove(e) {
     let newX, newY, newWidth, newHeight
@@ -123,9 +129,11 @@
     }
   }
   function onMouseUp() {
+    console.log('TRIM MOUSEUP')
     drawing = false
     resizing = false
     moving = false
+
     isFrameInUse = rectState.width && rectState.height ? true : false
     if (isFrameInUse) trimInfo.update(state => ({ ...state, ...relativeRectState }))
     trimInfo.update(state => ({ ...state, isDefined: isFrameInUse, triminprogress: false }))

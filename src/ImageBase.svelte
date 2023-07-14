@@ -9,8 +9,6 @@
   export let currentIndex
   export let mode
 
-  // let index = currentIndex
-
   let isLoading = true
   let imageWidth
   let imageHeight
@@ -137,8 +135,8 @@
     // Perform the desired action based on the specified "action" parameter
     switch (action) {
       case 'download':
-        saveImage(dataUrl, $rootnames[currentIndex], imageExtension)
-        dispatch('toastNotice', `Quadrant ${currentIndex} downloading.`)
+        saveImage(dataUrl, $rootnames[index], imageExtension)
+        dispatch('toastNotice', `Quadrant ${index} downloading.`)
         break
       case 'clipboard':
         copyImageToClipboard(dataUrl)
@@ -190,13 +188,14 @@
     trimCtx.drawImage(canvas, trimInfo.x, trimInfo.y, trimInfo.width, trimInfo.height, 0, 0, trimInfo.width, trimInfo.height)
     return trimCanvas
   }
-  const imageActionHandler = action => {
+  const imageActionHandler = (action, index = 0) => {
     if (mode === 'quadrant' && !$trimInfo.isDefined) {
       processImage(action, currentIndex)
     } else {
       const downloadCanvas = $trimInfo.isDefined ? trimCanvas(fullCanvas, $trimInfo) : fullCanvas
       if (action === 'download') {
-        downloadCanvasAsFile(downloadCanvas, $rootnames[index], imageExtension)
+        console.log('rootnames:', $rootnames)
+        downloadCanvasAsFile(downloadCanvas, $rootnames[currentIndex], imageExtension)
         dispatch('toastNotice', $trimInfo.isDefined ? `Trim area downloading.` : 'Full image downloading.')
       } else if (action === 'clipboard') {
         copyCanvasToClipboard(downloadCanvas)
@@ -226,9 +225,20 @@
       indexSwitch(index)
     }
   }
+  const switchQuadrantHandler = e => indexSwitch(e.detail.index)
+  const copyClipboardHandler = e => imageActionHandler('clipboard', e.detail.index)
+  const downloadFileHandler = e => imageActionHandler('download', e.detail.index)
+  const downloadAllHandler = e => {
+    let tempIndex = currentIndex
+    ;[4, 3, 2, 1].forEach(idx => {
+      currentIndex = idx
+      imageActionHandler('download', idx)
+    })
+    currentIndex = tempIndex
+  }
 </script>
 
-<KeyEventDispatcher {index} />
+<KeyEventDispatcher {index} on:downloadfile={downloadFileHandler} on:downloadall={downloadAllHandler} on:copytoclipboard={copyClipboardHandler} on:switchquadrant={switchQuadrantHandler} on:expandaction={() => expandHandler()} />
 
 {#if isLoading}
   <div class="spinner-container">

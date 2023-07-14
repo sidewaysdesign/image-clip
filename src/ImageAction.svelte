@@ -1,8 +1,8 @@
 <script>
   import { tick } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement } from './stores.js'
   import { createEventDispatcher } from 'svelte'
-  import { stopEditingFilename, toggleFullscreen, toggleTrimming, handleDownloadAction, handleClipboardAction, updateRootnameStore } from './utils.js'
+  import { toggleFullscreen, toggleTrimming, handleDownloadAction, handleClipboardAction } from './utils.js'
 
   import TrimControl from './TrimControl.svelte'
 
@@ -11,10 +11,33 @@
 
   let mode
   let editableDiv
+  let previousName
 
   const dispatch = createEventDispatcher()
 
-  const startEditingFilename = () => isEditing.set(true)
+  const startEditingFilename = index => {
+    previousName = $rootnames[index]
+    editingElement.set(editableDiv)
+    isEditing.set(true)
+  }
+  const updateRootnameStore = (index, newValue) => {
+    rootnames.update(arr => {
+      const updatedArr = [...arr]
+      updatedArr[index] = newValue
+      return updatedArr
+    })
+  }
+
+  const stopEditingFilename = () => {
+    let newName = editableDiv.innerText
+    if (newName.length === 0) {
+      currentName = previousName
+      return
+    }
+    console.log('FUNC stopEditingFilename')
+    updateRootnameStore(index, newName)
+    isEditing.set(false)
+  }
 
   let currentName = $rootnames[index]
   $: if ($isEditing) tick().then(() => setCursorToEnd(editableDiv))
@@ -38,6 +61,14 @@
     selection.removeAllRanges()
     selection.addRange(range)
   }
+  const escapeKeyHandler = event => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      event.stopPropagation()
+      editableDiv.innerText = previousName
+      editableDiv.blur()
+    }
+  }
 </script>
 
 <div class:triminprogress={$trimInfo.triminprogress} on:blur={handleBlur}>
@@ -50,7 +81,7 @@
     <div class="controls-wrapper">
       <div class="filename-area">
         {#if $isEditing}
-          <div class="filename-text editing" tabindex="0" on:blur={() => stopEditingFilename(index)} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable>
+          <div class="filename-text editing" tabindex="0" on:blur={() => stopEditingFilename(event, index)} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
             {currentName}
           </div>
         {:else}
@@ -65,7 +96,7 @@
         <button tabindex="0" class={`isolate-control ${$isTrimming ? 'icon-trimactive' : 'icon-triminactive'}`} on:click={() => toggleTrimming()} />
       {/if}
       {#if mode === 'quadrant'}
-        <button tabindex="0" class={`isolate-control ${$isFullScreen && isThisIndex ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen(dispatch)} />
+        <button tabindex="0" class={`isolate-control ${$isFullScreen && isThisIndex ? 'icon-shrink' : 'icon-expand'}`} on:click={() => toggleFullscreen(index, dispatch)} />
       {/if}
     </div>
   </div>

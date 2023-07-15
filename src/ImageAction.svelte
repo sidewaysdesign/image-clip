@@ -78,13 +78,9 @@
   <div class="image-action">
     <div class="controls-wrapper">
       <div class="filename-area" data-index={index}>
-        {#if $isEditing}
-          <div class="filename-text editing" tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
-            {currentName}
-          </div>
-        {:else}
-          <div class="filename-text" on:focus={() => startEditingFilename(index)} on:click={() => startEditingFilename(index)}>{currentName}</div>
-        {/if}
+        <div class="filename-text editing" class:editing={$isEditing} tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
+          {currentName}
+        </div>
         <button class="icon-download" on:click={() => handleDownloadAction(index, dispatch)} />
       </div>
       <button class="icon-clipboard" on:click={() => handleClipboardAction(index, dispatch)} />
@@ -223,7 +219,7 @@
     justify-content: space-between;
     overflow: visible;
   }
-  .filename-area::after {
+  /* .filename-area::after {
     content: attr(data-index);
     position: absolute;
     top: 50%;
@@ -240,8 +236,8 @@
     font-size: 1.0625rem;
     transform: translate(-50%, -50%);
     text-align: center;
-  }
-  .active .filename-area {
+  } */
+  :global(.active) .filename-area {
     opacity: 1;
     transform: translateY(0);
   }

@@ -437,14 +437,6 @@
     align-items: center;
     justify-content: center;
   }
-  canvas {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-  }
-  canvas {
-    box-shadow: 0.75rem 0.75rem 1.5rem black;
-  }
 
   @keyframes spin {
     0% {

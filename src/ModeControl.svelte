@@ -31,14 +31,14 @@
     </div>
     <div class="mode-control-info" on:keydown={handleOpenKeyEvent} on:click={handleOpen} />
     <div class="mode-control-container">
-      <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="-2" class:active={$params.mode === 'whole'}>
+      <div class="mode-control mode-control-whole" on:keydown={event => event.key.toLowerCase() === 'm' && toggleMode('whole')} on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="-2" class:active={$params.mode === 'whole'}>
         <span class="tooltip">Whole Image</span>
       </div>
       <div class="mode-control mode-control-quadrant" on:keydown={event => event.key.toLowerCase() === 'm' && toggleMode('quadrant')} on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="-1" class:active={$params.mode === 'quadrant'}>
         <span class="tooltip">Quadrants</span>
       </div>
     </div>
-    <div class="mode-control-hide2" on:click={() => (tucked = false)} />
+    <div aria-hidden="true" class="mode-control-hide2" on:click={() => (tucked = false)} />
   </div>
 </div>
 {#if popupOpen}

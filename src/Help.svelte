@@ -1,7 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { fade, scale } from 'svelte/transition'
-  export let active
+
   export let popupOpen
 
   const year = new Date().getFullYear()
@@ -16,9 +16,13 @@
     const action = keyActions[event.key]
     if (action) action(event)
   }
+  const closePopup = () => (popupOpen = false)
+  function handleKeyDown(event) {
+    if (event.key === 'Escape') closePopup()
+  }
 </script>
 
-<div class="help-page-overlay" transition:fade={{ duration: 250 }} on:click={() => (popupOpen = false)} />
+<div class="help-page-overlay" transition:fade={{ duration: 250 }} on:click={closePopup} on:keydown={handleKeyDown} />
 <div class="help-page-wrapper" transition:fade={{ duration: 375 }}>
   <div class="wordmark" />
   <h3>An extension to efficiently trim, save and copy to the clipboard images opened directly in the browser window.</h3>
@@ -27,12 +31,12 @@
     <div class="icon-group">
       <div class="icon-row">
         <div class="icon-unit">
-          <div class="icon-mode-whole" />
-          <label><span>Whole</span></label>
+          <div id="icon-mode-whole" class="icon-mode-whole" />
+          <label for="icon-mode-whole"><span>Whole</span></label>
         </div>
         <div class="icon-unit">
-          <div class="icon-mode-quadrant" />
-          <label><span>Quadrant</span></label>
+          <div id="icon-mode-quadrant" class="icon-mode-quadrant" />
+          <label for="icon-mode-quadrant"><span>Quadrant</span></label>
         </div>
       </div>
     </div>
@@ -44,12 +48,12 @@
       <div class="icon-group">
         <div class="icon-row">
           <div class="icon-unit">
-            <div class="icon-expand" />
-            <label><span>Expand</span></label>
+            <div id="icon-expand" class="icon-expand" />
+            <label for="icon-expand"><span>Expand</span></label>
           </div>
           <div class="icon-unit">
-            <div class="icon-shrink" />
-            <label><span>Shrink</span></label>
+            <div id="icon-shrink" class="icon-shrink" />
+            <label for="icon-shrink"><span>Shrink</span></label>
           </div>
         </div>
       </div>
@@ -109,11 +113,10 @@
     </div>
   </div>
   <p class="year">@{year} <a href="https://sidewaysdesign.com/">Sideways Design</a></p>
-  <div class="icon-close" on:click={() => (popupOpen = false)} />
+  <div class="icon-close" on:keydown={handleKeyDown} on:click={closePopup} />
 </div>
 
 <style>
-  h2,
   h3,
   h4,
   p {
@@ -204,9 +207,7 @@
     opacity: 0.5;
     /* animation: fade-in 0.375s ease-in-out forwards; */
   }
-  .help-page-wrapper.active {
-    transform: scale(1);
-  }
+
   .icon-close,
   .icon-triminactive,
   .icon-shrink,
@@ -249,9 +250,6 @@
     border-radius: 0.375rem;
     margin-right: 0.25rem;
   }
-  .keycap-nomargin {
-    margin-right: 0;
-  }
   .help-page-wrapper > *:last-child {
     margin-bottom: 0;
   }
@@ -261,7 +259,6 @@
     align-items: center;
     flex-direction: column;
     flex-basis: 44px;
-    /* min-width: 70px; */
   }
   .icon-mode-quadrant,
   .icon-mode-whole {
@@ -347,7 +344,7 @@
   }
   .year {
     text-align: center;
-    margin-top: 2rem;
+    margin-top: 1.25rem;
     margin-bottom: -0.25rem;
     font-family: var(--fonts);
   }

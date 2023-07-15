@@ -33,7 +33,6 @@
       currentName = previousName
       return
     }
-    console.log('FUNC stopEditingFilename')
     updateRootnameStore(index, newName)
     isEditing.set(false)
   }
@@ -80,11 +79,11 @@
     <div class="controls-wrapper">
       <div class="filename-area" data-index={index}>
         {#if $isEditing}
-          <div class="filename-text editing" tabindex="0" on:blur={() => stopEditingFilename(event, index)} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
+          <div class="filename-text editing" tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
             {currentName}
           </div>
         {:else}
-          <div class="filename-text" tabindex="0" on:focus={() => startEditingFilename(index)} on:click={() => startEditingFilename(index)}>{currentName}</div>
+          <div class="filename-text" on:focus={() => startEditingFilename(index)} on:click={() => startEditingFilename(index)}>{currentName}</div>
         {/if}
         <button class="icon-download" on:click={() => handleDownloadAction(index, dispatch)} />
       </div>

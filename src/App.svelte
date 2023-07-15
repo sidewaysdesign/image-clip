@@ -56,7 +56,7 @@
 <main>
   <div class="image-wrapper">
     <div class="image-stage" class:fullscreen={$isFullScreen}>
-      <ImageBase {imageUrl} {currentIndex} on:toastNotice={toastHandler} {mode} {imageExtension} />
+      <ImageBase {imageUrl} {currentIndex} on:toastNotice={toastHandler} {imageExtension} />
     </div>
   </div>
   <ModeControl />

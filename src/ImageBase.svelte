@@ -270,9 +270,6 @@
 {/if}
 
 <style>
-  .image-base {
-    /* position: relative; */
-  }
   .image-shim {
     position: relative;
     margin-left: auto;
@@ -404,14 +401,7 @@
     z-index: 1;
     opacity: 1;
   }
-  .whole .background-container {
-    border: 15px solid orange;
-    background-size: 100%;
-    width: 100%;
-    height: 100%;
-    max-width: 100vw;
-    max-height: 100vh;
-  }
+
   .spinner-container {
     position: fixed;
     display: flex;

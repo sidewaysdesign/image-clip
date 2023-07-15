@@ -47,12 +47,10 @@
     }
   }
   const blurAnythingActive = () => {
-    console.log('blurAnythingActive')
     const activeElement = document.activeElement
-    // if (activeElement && activeElement.getAttribute('contenteditable')) {
-    if (activeElement) {
+    if (activeElement && activeElement instanceof HTMLElement) {
       activeElement.blur()
-      event.preventDefault() // This prevents the creation of a new line
+      event.preventDefault()
       return
     }
   }

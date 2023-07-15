@@ -16,7 +16,8 @@ export const trimInfo = writable({
   y: 0,
   width: 0,
   height: 0,
-  mode: 'whole'
+  mode: 'whole',
+  expanded: false
 })
 export const isTrimming = writable(false)
 export const isEditing = writable(false)

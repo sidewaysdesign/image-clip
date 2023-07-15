@@ -16,26 +16,25 @@
       params.update(state => ({ ...state, mode: 'whole' }))
     }
   }
-  const handleHide = () => {
-    const modeControl = document.querySelector('.mode-control-wrapper')
-    modeControl.classList.add('tucked')
+  const handleOpen = () => (popupOpen = true)
+  const handleOpenKeyEvent = event => {
+    if (event.key === '?') popupOpen = true
   }
-  $: mode = $params.mode
 </script>
 
 <div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>
   <div class="mode-control-group">
-    <div class="mode-control-hide1" on:click={() => (tucked = true)} />
+    <div class="mode-control-hide1" aria-hidden="true" on:click={() => (tucked = true)} />
     <div>
       <div class="wordmark" />
       <p class="byline"><a href="https://sidewaysdesign.com" target="blank">by Sideways Design</a></p>
     </div>
-    <div class="mode-control-info" on:click={() => (popupOpen = true)} />
+    <div class="mode-control-info" on:keydown={handleOpenKeyEvent} on:click={handleOpen} />
     <div class="mode-control-container">
-      <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="1" class:active={mode === 'whole'}>
+      <div class="mode-control mode-control-whole" on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="-2" class:active={$params.mode === 'whole'}>
         <span class="tooltip">Whole Image</span>
       </div>
-      <div class="mode-control mode-control-quadrant" on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="0" class:active={mode === 'quadrant'}>
+      <div class="mode-control mode-control-quadrant" on:keydown={event => event.key.toLowerCase() === 'm' && toggleMode('quadrant')} on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="-1" class:active={$params.mode === 'quadrant'}>
         <span class="tooltip">Quadrants</span>
       </div>
     </div>
@@ -146,15 +145,9 @@
     display: flex;
     gap: calc(var(--apppadding) / 4);
   }
-  .mode-control-group .title {
-    font-size: 1rem;
-    color: white;
-    line-height: 1;
-    margin: 0;
-  }
+
   .mode-control-quadrant,
-  .mode-control-whole,
-  .mode-control-trim {
+  .mode-control-whole {
     width: var(--buttonsize);
     height: var(--buttonsize);
     background-size: 100%;

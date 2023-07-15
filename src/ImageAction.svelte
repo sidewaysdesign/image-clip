@@ -1,6 +1,6 @@
 <script>
   import { tick } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement, params } from './stores.js'
   import { createEventDispatcher } from 'svelte'
   import { toggleFullscreen, toggleTrimming, handleDownloadAction, handleClipboardAction } from './utils.js'
 
@@ -9,7 +9,6 @@
   export let index
   export let frameSpecs
 
-  let mode
   let editableDiv
   let previousName
 
@@ -45,7 +44,7 @@
     isTrimming.set(false)
     trimInfo.update(state => ({ ...state, cancelTrim: false, isDefined: false }))
   }
-  $: mode = $trimInfo.mode
+  $: mode = $params.mode
   $: isThisIndex = $trimInfo.index === index
 
   const handleBlur = event => {
@@ -79,7 +78,7 @@
   {/if}
   <div class="image-action">
     <div class="controls-wrapper">
-      <div class="filename-area">
+      <div class="filename-area" data-index={index}>
         {#if $isEditing}
           <div class="filename-text editing" tabindex="0" on:blur={() => stopEditingFilename(event, index)} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
             {currentName}
@@ -142,7 +141,8 @@
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
     transform: scale(0.97);
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
+    /* overflow: hidden; */
   }
   .image-action > * {
     pointer-events: all;
@@ -222,6 +222,25 @@
     flex-grow: 0;
     flex-basis: 100%;
     justify-content: space-between;
+    overflow: visible;
+  }
+  .filename-area::after {
+    content: attr(data-index);
+    position: absolute;
+    top: 50%;
+    left: 0.125rem;
+    width: 1.375rem;
+    height: 1.375rem;
+    line-height: 1;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: black;
+    font-size: 1.0625rem;
+    transform: translate(-50%, -50%);
+    text-align: center;
   }
   .active .filename-area {
     opacity: 1;

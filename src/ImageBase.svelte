@@ -1,13 +1,12 @@
 <script>
   import { onMount, afterUpdate, createEventDispatcher } from 'svelte'
-  import { rootnames, trimInfo, isTransitioning, lastHovered } from './stores.js'
+  import { rootnames, trimInfo, isTransitioning, lastHovered, params } from './stores.js'
   import ImageAction from './ImageAction.svelte'
   import KeyEventDispatcher from './KeyEventsDispatcher.svelte'
 
   export let imageUrl
   export let imageExtension
   export let currentIndex
-  export let mode
 
   let isLoading = true
   let imageWidth
@@ -18,6 +17,7 @@
   let aspectRatioCSS = ''
   let frameSpecs
 
+  $: mode = $params.mode
   $: index = $trimInfo.index
   $: expanded = $trimInfo.expanded
 

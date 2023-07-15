@@ -1,13 +1,5 @@
 import { get } from 'svelte/store'
-import { isFullScreen, isEditing, isTrimming, rootnames, trimInfo, originalName } from './stores.js'
-
-export const handleViewQuadrant = (keyedIndex, dispatch) => {
-  console.log('FUNC handleViewQuadrant', get(isFullScreen))
-  if (!get(isFullScreen)) isTrimming.set(false)
-  toggleFullscreen(keyedIndex, dispatch)
-  trimInfo.update(state => ({ ...state, index: keyedIndex, mode: 'quadrant' }))
-  dispatch('expandaction')
-}
+import { isFullScreen, isTrimming, trimInfo } from './stores.js'
 
 export const toggleFullscreen = (index, dispatch) => {
   console.log('FUNC toggleFullscreen')

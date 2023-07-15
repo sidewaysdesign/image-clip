@@ -4,16 +4,38 @@
     <title>QuickTrim</title>
   </head>
   <script>
-    alert('popup,html')
+    var imageMaxMb = 16
+    function handleImage(imageUrl) {
+      fetch(imageUrl, { method: 'HEAD' })
+        .then(response => {
+          const imageSize = Number(response.headers.get('Content-Length'))
+          const cutoffSize = imageMaxMb * 1024 * 1024 // 10 MB
+
+          if (imageSize > cutoffSize) {
+            return response.blob().then(blob => URL.createObjectURL(blob))
+          } else {
+            return imageUrl
+          }
+        })
+        .then(url => {
+          const encodedUrl = encodeURIComponent(url)
+          const viewerUrl = chrome.runtime.getURL(`index.html?image=${encodedUrl}&original=${encodeURIComponent(imageUrl)}`)
+          window.location.replace(viewerUrl)
+        })
+        .catch(console.error)
+    }
+    // if (window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
+    //   const imageUrl = window.location.href
+    //   handleImage(imageUrl)
+    // }
     if (window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
-      alert('popup,html')
       const imageUrl = encodeURIComponent(window.location.href)
       const viewerUrl = chrome.runtime.getURL(`index.html?image=${imageUrl}`)
       window.location.replace(viewerUrl)
     }
   </script>
   <body>
-    <div id="description">xQuickTrim is a Chrome extension to efficiently and precisely save or copy to the clipboard images opened in a browser window, in whole or in part.</div>
+    <div id="description">QuickTrim is a Chrome extension to efficiently and precisely save or copy to the clipboard images opened in a browser window, in whole or in part.</div>
     <!-- <button id="openImageViewerBtn">Open QuickTrim</button> -->
     <!-- <div id="message"></div> -->
     <!-- <script src="domain-functions.js"></script> -->

@@ -1,17 +1,27 @@
 <script>
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames, trimInfo, isFullScreen } from './stores.js'
+  import { rootnames, trimInfo, isFullScreen, params } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
+  import { onDestroy } from 'svelte'
 
   let quadsuffix = '_q'
   let imageUrl
+  let originalUrl
   let urlParams
 
-  if (window.location.search) {
-    urlParams = new URLSearchParams(window.location.search)
-  }
+  onDestroy(() => {
+    if (imageUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(imageUrl)
+    }
+  })
+  if (window.location.search) urlParams = new URLSearchParams(window.location.search)
+
   imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
+
+  // originalUrl = urlParams?.get('original')
+
+  // imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
   // imageUrl = 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
 
   const toastOptions = { duration: 1500, intro: { x: 256 } }
@@ -22,10 +32,13 @@
     const [_, nameWithoutExtension, extension] = fileName.match(/(.+)(\.\w+)$/) ?? []
     return { rootname: nameWithoutExtension ?? fileName, imageExtension: extension ?? '' }
   }
+  // const { rootname, imageExtension } = splitFileNameFromUrl(originalUrl)
 
   const { rootname, imageExtension } = splitFileNameFromUrl(imageUrl)
 
-  $: mode = $trimInfo.mode
+  let { mode } = $params
+
+  // $: mode = $trimInfo.mode
 
   let state = {
     currentMode: mode,

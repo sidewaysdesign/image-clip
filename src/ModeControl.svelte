@@ -1,23 +1,26 @@
 <script>
-  import { trimInfo } from './stores.js'
+  import { trimInfo, params } from './stores.js'
 
   import Help from './Help.svelte'
-
-  let mode
 
   let tucked = false
   let popupOpen = false
 
   const toggleMode = newMode => {
-    // mode = newMode
-    if (newMode === 'quadrant') trimInfo.update(state => ({ ...state, index: 1, mode: 'quadrant' }))
-    if (newMode === 'whole') trimInfo.update(state => ({ ...state, index: 0, mode: 'whole', expanded: false }))
+    if (newMode === 'quadrant') {
+      trimInfo.update(state => ({ ...state, index: 1 }))
+      params.update(state => ({ ...state, mode: 'quadrant' }))
+    }
+    if (newMode === 'whole') {
+      trimInfo.update(state => ({ ...state, index: 0, expanded: false }))
+      params.update(state => ({ ...state, mode: 'whole' }))
+    }
   }
   const handleHide = () => {
     const modeControl = document.querySelector('.mode-control-wrapper')
     modeControl.classList.add('tucked')
   }
-  $: mode = $trimInfo.mode
+  $: mode = $params.mode
 </script>
 
 <div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>

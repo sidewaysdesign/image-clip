@@ -1,7 +1,11 @@
-// store.js
+// stores.js
 import { writable } from 'svelte/store'
+const storageName = 'colorMixerParams'
+const storedParams = localStorage.getItem(storageName)
+const defaultParams = {
+  mode: 'whole'
+}
 
-// Create a writable store with an initial value of an empty array
 export const rootnames = writable([])
 export const trimInfo = writable({
   triminprogress: false,
@@ -22,3 +26,8 @@ export const isTransitioning = writable(false)
 export const lastHovered = writable(null)
 export const originalName = writable('')
 export const editingElement = writable(null)
+export const params = writable(storedParams ? { ...defaultParams, ...JSON.parse(storedParams) } : defaultParams)
+
+params.subscribe(updatedParams => {
+  localStorage.setItem(storageName, JSON.stringify(updatedParams))
+})

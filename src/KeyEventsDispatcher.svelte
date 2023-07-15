@@ -1,8 +1,8 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte'
   // import { get } from 'svelte/store'
-  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, editingElement } from './stores.js'
-  import { toggleFullscreen, toggleTrimming, handleDownloadAction, canIgnoreKeydown } from './utils.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, params } from './stores.js'
+  import { toggleFullscreen, toggleTrimming, canIgnoreKeydown } from './utils.js'
 
   export let index
   $: currentIndex = $trimInfo.index
@@ -14,16 +14,21 @@
   }
 
   const quadSwitch = index => {
-    if ($trimInfo.mode !== 'quadrant') trimInfo.update(state => ({ ...state, index, mode: 'quadrant' }))
+    if ($params.mode !== 'quadrant') {
+      trimInfo.update(state => ({ ...state, index }))
+      params.update(state => ({ ...state, mode: 'quadrant' }))
+    }
     dispatch('switchquadrant', { index })
   }
 
   const modeSwitchHandler = () => {
     if (index !== 0) {
       if ($trimInfo.expanded) dispatch('expandaction')
-      trimInfo.update(state => ({ ...state, index: 0, mode: 'whole' }))
+      trimInfo.update(state => ({ ...state, index: 0, expanded: false }))
+      params.update(state => ({ ...state, mode: 'whole' }))
     } else {
-      trimInfo.update(state => ({ ...state, index: 1, mode: 'quadrant' }))
+      params.update(state => ({ ...state, mode: 'quadrant' }))
+      trimInfo.update(state => ({ ...state, index: 1 }))
     }
   }
 

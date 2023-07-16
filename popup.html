@@ -3,8 +3,59 @@
   <head>
     <title>QuickTrim</title>
   </head>
+  <style>
+    #description {
+      min-width: 240px;
+      padding: 1rem;
+    }
+    p {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.33;
+    }
+    .controls {
+      font-size: 0.92rem;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    input[type='checkbox'] {
+      width: 1rem;
+      height: 1rem;
+      margin: 0 0.5rem 0 0;
+    }
+  </style>
   <script>
     var imageMaxMb = 16
+    let bypassQuickTrim = false
+
+    async function initToggle() {
+      // const toggleMainPage = document.getElementById('toggleMainPage')
+
+      // // Wrap the chrome.storage.local.get in a Promise so we can use async/await
+      // const getStorage = new Promise(resolve => {
+      //   chrome.storage.local.get(['bypassQuickTrim'], function (result) {
+      //     resolve(result.bypassQuickTrim || false)
+      //   })
+      // })
+
+      // bypassQuickTrim = await getStorage
+      // toggleMainPage.checked = bypassQuickTrim
+
+      // toggleMainPage.addEventListener('change', async function (event) {
+      //   const isChecked = event.target.checked
+      //   // Wrap the chrome.storage.local.set in a Promise so we can use async/await
+      //   await new Promise(resolve => {
+      //     chrome.storage.local.set({ bypassQuickTrim: isChecked }, resolve)
+      //   })
+      //   bypassQuickTrim = isChecked
+      //   testOpenQuickTrim()
+      // })
+      testOpenQuickTrim()
+    }
+    document.addEventListener('DOMContentLoaded', initToggle)
+
     function handleImage(imageUrl) {
       fetch(imageUrl, { method: 'HEAD' })
         .then(response => {
@@ -24,21 +75,21 @@
         })
         .catch(console.error)
     }
-    // if (window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
-    //   const imageUrl = window.location.href
-    //   handleImage(imageUrl)
-    // }
-    if (window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
-      const imageUrl = encodeURIComponent(window.location.href)
-      const viewerUrl = chrome.runtime.getURL(`index.html?image=${imageUrl}`)
-      window.location.replace(viewerUrl)
+    function testOpenQuickTrim() {
+      if (!bypassQuickTrim && window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
+        const imageUrl = encodeURIComponent(window.location.href)
+        const viewerUrl = chrome.runtime.getURL(`index.html?image=${imageUrl}`)
+        window.location.replace(viewerUrl)
+      }
     }
   </script>
   <body>
-    <div id="description">QuickTrim is a Chrome extension to efficiently and precisely save or copy to the clipboard images opened in a browser window, in whole or in part.</div>
-    <!-- <button id="openImageViewerBtn">Open QuickTrim</button> -->
-    <!-- <div id="message"></div> -->
-    <!-- <script src="domain-functions.js"></script> -->
-    <!-- <script src="download-functions.js"></script> -->
+    <div id="description">
+      <p>QuickTrim handles images (<strong>PNG</strong>, <strong>JPEG</strong>, or <strong>WebP</strong>) directly opened in a browser tab for cropping and saving.</p>
+      <!-- <div class="controls">
+        <input type="checkbox" id="toggleMainPage" />
+        <label for="toggleMainPage">Disable auto-open</label>
+      </div> -->
+    </div>
   </body>
 </html>

@@ -55,6 +55,7 @@
     }
   }
   const handleKeydown = event => {
+    if (event.metaKey || event.altKey) return
     if ($isEditing && event.key === 'Enter') {
       blurAnythingActive()
       return

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "QuickTrim",
   "version": "1.0.0",
-  "description": "An extension to efficiently trim, save and copy to the clipboard images opened directly in the browser window.",
+  "description": "An extension to quickly trim, save and copy to the clipboard images opened directly in the browser window.",
   "icons": {
     "48": "icon.png"
   },
@@ -12,7 +12,7 @@
     },
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["storage", "activeTab", "tabs"],
   "web_accessible_resources": [
     {
       "resources": ["index.html"],

@@ -5,6 +5,7 @@
 
   let svg, svgRect, focusOverlay, trimStats, rectObj
   let moveHandle
+
   let imageWidth = frameSpecs.width
   let imageHeight = frameSpecs.height
   let quadOffsetX = frameSpecs.x1

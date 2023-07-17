@@ -126,7 +126,7 @@
     }
     return { sx, sy }
   }
-  const processImage = (action = 'download', index) => {
+  const processQuadImage = (action = 'download', index) => {
     const saveAreaWidth = parseInt(index) === 0 ? imageWidth : imageWidth / 2
     const saveAreaHeight = parseInt(index) === 0 ? imageHeight : imageHeight / 2
     const saveAreaCanvas = document.createElement('canvas')
@@ -186,16 +186,20 @@
       })
   }
   const trimCanvas = (canvas, trimInfo) => {
-    const trimCanvas = document.createElement('canvas')
-    const trimCtx = trimCanvas.getContext('2d')
-    trimCanvas.width = trimInfo.width
-    trimCanvas.height = trimInfo.height
+    const trimCanvasEl = document.createElement('canvas')
+    const trimCtx = trimCanvasEl.getContext('2d')
+    trimCanvasEl.width = trimInfo.width
+    trimCanvasEl.height = trimInfo.height
     trimCtx.drawImage(canvas, trimInfo.x, trimInfo.y, trimInfo.width, trimInfo.height, 0, 0, trimInfo.width, trimInfo.height)
-    return trimCanvas
+    return trimCanvasEl
   }
-  const imageActionHandler = (action, index = 0) => {
-    if (mode === 'quadrant' && !$trimInfo.isDefined) {
-      processImage(action, currentIndex)
+  const imageActionHandler = action => {
+    if (action === 'downloadall') {
+      ;[4, 3, 2, 1].forEach(idx => processQuadImage('download', idx))
+      return
+    }
+    if (mode === 'quadrant') {
+      processQuadImage(action, $trimInfo.index)
     } else {
       const downloadCanvas = $trimInfo.isDefined ? trimCanvas(fullCanvas, $trimInfo) : fullCanvas
       if (action === 'download') {
@@ -230,16 +234,9 @@
     }
   }
   const switchQuadrantHandler = e => indexSwitch(e.detail.index)
-  const copyClipboardHandler = e => imageActionHandler('clipboard', e.detail.index)
-  const downloadFileHandler = e => imageActionHandler('download', e.detail.index)
-  const downloadAllHandler = e => {
-    let tempIndex = currentIndex
-    ;[4, 3, 2, 1].forEach(idx => {
-      currentIndex = idx
-      imageActionHandler('download', idx)
-    })
-    currentIndex = tempIndex
-  }
+  const copyClipboardHandler = e => imageActionHandler('clipboard', $trimInfo.index)
+  const downloadFileHandler = e => imageActionHandler('download', $trimInfo.index)
+  const downloadAllHandler = e => imageActionHandler('downloadall')
 </script>
 
 <KeyEventDispatcher {index} on:downloadfile={downloadFileHandler} on:downloadall={downloadAllHandler} on:copytoclipboard={copyClipboardHandler} on:switchquadrant={switchQuadrantHandler} on:expandaction={() => expandHandler()} />

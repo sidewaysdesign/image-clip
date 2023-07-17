@@ -1,5 +1,5 @@
 // stores.js
-import { writable } from 'svelte/store'
+import { writable, readable } from 'svelte/store'
 const storageName = 'colorMixerParams'
 const storedParams = localStorage.getItem(storageName)
 const defaultParams = {
@@ -28,7 +28,7 @@ export const lastHovered = writable(null)
 export const originalName = writable('')
 export const editingElement = writable(null)
 export const params = writable(storedParams ? { ...defaultParams, ...JSON.parse(storedParams) } : defaultParams)
-
+export const quadsuffix = readable('_quad')
 params.subscribe(updatedParams => {
   localStorage.setItem(storageName, JSON.stringify(updatedParams))
 })

@@ -1,6 +1,6 @@
 <script>
   import { tick } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement, params } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement, params, quadsuffix } from './stores.js'
   import { createEventDispatcher } from 'svelte'
   import { toggleFullscreen, toggleTrimming, handleDownloadAction, handleClipboardAction } from './utils.js'
 
@@ -14,30 +14,25 @@
 
   const dispatch = createEventDispatcher()
 
-  const startEditingFilename = index => {
+  const startEditingFilename = () => {
     previousName = $rootnames[index]
     editingElement.set(editableDiv)
     isEditing.set(true)
   }
-  const updateRootnameStore = (index, newValue) => {
-    rootnames.update(arr => {
-      const updatedArr = [...arr]
-      updatedArr[index] = newValue
-      return updatedArr
-    })
-  }
 
   const stopEditingFilename = () => {
     let newName = editableDiv.innerText
-    if (newName.length === 0) {
-      currentName = previousName
+    if (!newName || newName.length === 0) {
+      currentName = previousName.trim()
       return
     }
-    updateRootnameStore(index, newName)
+    updateRootnameStore(newName)
     isEditing.set(false)
+    editableDiv.blur()
   }
 
   let currentName = $rootnames[index]
+
   $: if ($isEditing) tick().then(() => setCursorToEnd(editableDiv))
   $: if ($trimInfo.cancelTrim) {
     isTrimming.set(false)
@@ -50,19 +45,39 @@
     isTrimming.set(false)
     isFullScreen.set(false)
   }
-
+  const updateRootnameStore = newName => {
+    const rangelimit = 4
+    let updatedNames = $rootnames.slice()
+    if (index === 0) {
+      let possiblePreviousNames = Array.from({ length: rangelimit }, (_, i) => `${$rootnames[0]}${$quadsuffix}${i + 1}`)
+      updatedNames[index] = newName
+      updatedNames.forEach((currentName, i) => {
+        if (i > 0) {
+          // Skip the first index as it's the main image name
+          let possibleName = possiblePreviousNames[i - 1] // Subtract 1 because possiblePreviousNames indices start from 0
+          if (possibleName && currentName === possibleName) updatedNames[i] = `${newName}${$quadsuffix}${i}`
+        }
+      })
+    } else {
+      updatedNames[index] = newName
+    }
+    rootnames.set(updatedNames) // Set the entire array at once
+  }
   const setCursorToEnd = element => {
+    return
+    const selection = window.getSelection()
+    selection.removeAllRanges()
     const range = document.createRange()
     range.selectNodeContents(element)
     range.collapse(false)
-    const selection = window.getSelection()
-    selection.removeAllRanges()
     selection.addRange(range)
   }
-  const escapeKeyHandler = event => {
+
+  const keydownHandler = event => {
+    if (event.key === 'Enter') {
+      editableDiv.blur()
+    }
     if (event.key === 'Escape') {
-      event.preventDefault()
-      event.stopPropagation()
       editableDiv.innerText = previousName
       editableDiv.blur()
     }
@@ -78,10 +93,10 @@
   <div class="image-action">
     <div class="controls-wrapper">
       <div class="filename-area" data-index={index}>
-        <div class="filename-text editing" class:editing={$isEditing} tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
+        <div class="filename-text" class:editing={$isEditing} tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation={startEditingFilename} contenteditable on:keydown={keydownHandler}>
           {currentName}
         </div>
-        <!-- <input id="editableInput" class="filename-text editing" class:editing={$isEditing} on:blur={stopEditingFilename} value={currentName} on:keydown={escapeKeyHandler} /> -->
+        <!-- <input type="text" id="editableInput" class="filename-text editing" class:editing={$isEditing} on:blur={stopEditingFilename} value={currentName} on:keydown={keydownHandler} /> -->
 
         <button class="icon-download" on:click={() => handleDownloadAction(index, dispatch)} />
       </div>
@@ -139,7 +154,6 @@
     transform: scale(0.97);
     pointer-events: none;
     overflow: visible;
-    /* overflow: hidden; */
   }
   .image-action > * {
     pointer-events: all;
@@ -157,14 +171,9 @@
     gap: calc(var(--apppadding) / 2);
     align-items: center;
     justify-content: space-between;
-    /* min-width: 500px; */
-    /* left: 50%; */
-    /* transform: translateX(-50%); */
     min-width: 360px;
     left: 0;
     right: auto;
-    /* margin-left: -50%; */
-    /* margin-right: -50%; */
     transition: all 0.3s ease-in-out;
   }
   .icon-clipboard,
@@ -230,24 +239,7 @@
     justify-content: space-between;
     overflow: visible;
   }
-  /* .filename-area::after {
-    content: attr(data-index);
-    position: absolute;
-    top: 50%;
-    left: 0.125rem;
-    width: 1.375rem;
-    height: 1.375rem;
-    line-height: 1;
-    border-radius: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
-    color: black;
-    font-size: 1.0625rem;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  } */
+
   :global(.active) .filename-area {
     opacity: 1;
     transform: translateY(0);
@@ -266,6 +258,7 @@
     cursor: pointer;
     outline: none;
     caret-color: white;
+    position: relative;
   }
   .filename-text::selection {
     background: rgb(45, 84, 97);
@@ -277,6 +270,7 @@
     left: 0;
     width: calc(100% - var(--toprowheight));
     height: 100%;
+    z-index: -1;
   }
   .filename-text.editing {
     color: #fff;

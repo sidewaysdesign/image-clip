@@ -1,10 +1,9 @@
 <script>
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames, trimInfo, isFullScreen, params } from './stores.js'
+  import { rootnames, trimInfo, isFullScreen, params, quadsuffix } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
 
-  let quadsuffix = '_q'
   let imageUrl
   let originalUrl
   let urlParams
@@ -32,7 +31,7 @@
     currentMode: mode,
     currentName: rootname,
     currentIndex: mode === 'quadrant' ? 1 : 0,
-    filenames: [rootname, ...Array.from([1, 2, 3, 4], (_, index) => `${rootname}${quadsuffix}${index + 1}`)]
+    filenames: [rootname, ...Array.from([1, 2, 3, 4], (_, index) => `${rootname}${$quadsuffix}${index + 1}`)]
   }
 
   $rootnames = state.filenames

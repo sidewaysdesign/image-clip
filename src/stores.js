@@ -19,6 +19,12 @@ export const trimInfo = writable({
   mode: 'whole',
   expanded: false
 })
+export const rectState = writable({
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0
+})
 export const isTrimming = writable(false)
 export const isEditing = writable(false)
 export const isEditingElement = writable(null)

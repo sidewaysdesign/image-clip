@@ -1,10 +1,10 @@
 <script>
   import { tick } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, originalName, editingElement, params, quadsuffix } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, isTrimming, editingElement, params, quadsuffix } from './stores.js'
   import { createEventDispatcher } from 'svelte'
   import { toggleFullscreen, toggleTrimming, handleDownloadAction, handleClipboardAction } from './utils.js'
 
-  import TrimControl from './TrimControl.svelte'
+  import Trim from './Trim.svelte'
 
   export let index
   export let frameSpecs
@@ -36,7 +36,7 @@
   $: if ($isEditing) tick().then(() => setCursorToEnd(editableDiv))
   $: if ($trimInfo.cancelTrim) {
     isTrimming.set(false)
-    trimInfo.update(state => ({ ...state, cancelTrim: false, isDefined: false }))
+    trimInfo.update(state => ({ ...state, cancelTrim: false, isDefined: false, triminprogress: false }))
   }
   $: mode = $params.mode
   $: isThisIndex = $trimInfo.index === index
@@ -87,7 +87,7 @@
 <div class:triminprogress={$trimInfo.triminprogress} on:blur={handleBlur}>
   {#if $isTrimming && isThisIndex}
     <div class="trim-action">
-      <TrimControl {frameSpecs} />
+      <Trim {frameSpecs} />
     </div>
   {/if}
   <div class="image-action">

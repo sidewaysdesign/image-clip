@@ -1,5 +1,5 @@
 <script>
-  import { trimInfo, params } from './stores.js'
+  import { trimInfo, params, isFullScreen } from './stores.js'
 
   import Help from './Help.svelte'
 
@@ -7,11 +7,13 @@
   let popupOpen = false
 
   const toggleMode = newMode => {
+    trimInfo.update(state => ({ ...state, cancelTrim: true }))
     if (newMode === 'quadrant') {
       trimInfo.update(state => ({ ...state, index: 1 }))
       params.update(state => ({ ...state, mode: 'quadrant' }))
     }
     if (newMode === 'whole') {
+      isFullScreen.set(false)
       trimInfo.update(state => ({ ...state, index: 0, expanded: false }))
       params.update(state => ({ ...state, mode: 'whole' }))
     }

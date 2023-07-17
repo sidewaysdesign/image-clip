@@ -67,13 +67,10 @@
     let canvas
 
     try {
-      // const img = await getImageRef(url)
-
       const start = performance.now() // Start timer
       const img = await getImageRef(url)
       const end = performance.now() // End timer
       const timeTaken = ((end - start) / 1000).toFixed(2) // Time in fractional seconds
-
       width = img.width
       height = img.height
       canvas = getFullCanvas(img, 0, 0, width, height)
@@ -198,7 +195,7 @@
       ;[4, 3, 2, 1].forEach(idx => processQuadImage('download', idx))
       return
     }
-    if (mode === 'quadrant') {
+    if (mode === 'quadrant' && !$trimInfo.isDefined) {
       processQuadImage(action, $trimInfo.index)
     } else {
       const downloadCanvas = $trimInfo.isDefined ? trimCanvas(fullCanvas, $trimInfo) : fullCanvas
@@ -222,7 +219,6 @@
     trimInfo.update(state => ({ ...state, index: index }))
   }
   const expandHandler = () => {
-    // expanded = !expanded
     trimInfo.update(state => ({ ...state, expanded: !state.expanded }))
   }
 
@@ -234,12 +230,12 @@
     }
   }
   const switchQuadrantHandler = e => indexSwitch(e.detail.index)
-  const copyClipboardHandler = e => imageActionHandler('clipboard', $trimInfo.index)
-  const downloadFileHandler = e => imageActionHandler('download', $trimInfo.index)
+  const copyClipboardHandler = e => imageActionHandler('clipboard')
+  const downloadFileHandler = e => imageActionHandler('download')
   const downloadAllHandler = e => imageActionHandler('downloadall')
 </script>
 
-<KeyEventDispatcher {index} on:downloadfile={downloadFileHandler} on:downloadall={downloadAllHandler} on:copytoclipboard={copyClipboardHandler} on:switchquadrant={switchQuadrantHandler} on:expandaction={() => expandHandler()} />
+<KeyEventDispatcher on:downloadfile={downloadFileHandler} on:downloadall={downloadAllHandler} on:copytoclipboard={copyClipboardHandler} on:switchquadrant={switchQuadrantHandler} on:expandaction={() => expandHandler()} />
 
 {#if isLoading}
   <div class="spinner-container">

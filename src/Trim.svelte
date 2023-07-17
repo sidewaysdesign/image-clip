@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { trimInfo } from './stores'
+  import { trimInfo, rectState } from './stores'
   export let frameSpecs
 
   let svg, svgRect, focusOverlay, trimStats, rectObj
@@ -11,7 +11,7 @@
   let quadOffsetX = frameSpecs.x1
   let quadOffsetY = frameSpecs.y1
   let factor = frameSpecs.factor
-  let rectState = { x: 0, y: 0, width: 0, height: 0 }
+  // let rectState = $trimRect
 
   let drawing = false
   let resizing = false
@@ -35,10 +35,10 @@
   $: {
     if (svg) {
       relativeRectState = {
-        x: Math.floor((rectState.x / svg.clientWidth) * imageWidth * factor) + quadOffsetX,
-        y: Math.floor((rectState.y / svg.clientHeight) * imageHeight * factor) + quadOffsetY,
-        width: Math.floor((rectState.width / svg.clientWidth) * imageWidth * factor),
-        height: Math.floor((rectState.height / svg.clientHeight) * imageHeight * factor)
+        x: Math.floor(($rectState.x / svg.clientWidth) * imageWidth * factor) + quadOffsetX,
+        y: Math.floor(($rectState.y / svg.clientHeight) * imageHeight * factor) + quadOffsetY,
+        width: Math.floor(($rectState.width / svg.clientWidth) * imageWidth * factor),
+        height: Math.floor(($rectState.height / svg.clientHeight) * imageHeight * factor)
       }
     }
   }
@@ -64,7 +64,7 @@
       offsetY = event.clientY - screenOffsetY
       drawing = true
       svg.classList.remove('inactive')
-      rectState = { x: 0, y: 0, width: 0, height: 0 }
+      // rectState = { x: 0, y: 0, width: 0, height: 0 }
       focusOverlay.setAttribute('d', `M0,0H${svgRect.width}V${svgRect.height}H0Z`)
     } else if (event.target.classList.contains('handle')) {
       offsetX = event.clientX - screenOffsetX
@@ -72,8 +72,8 @@
       resizing = true
       currentHandle = event.target
     } else if (event.target.id === 'movehandle') {
-      offsetX = event.clientX - rectState.x
-      offsetY = event.clientY - rectState.y
+      offsetX = event.clientX - $rectState.x
+      offsetY = event.clientY - $rectState.y
       moving = true
     }
 
@@ -88,11 +88,11 @@
       newWidth = Math.abs(offsetX - e.clientX + screenOffsetX)
       newHeight = Math.abs(offsetY - e.clientY + screenOffsetY)
     } else if (resizing) {
-      const r = rectState
-      newX = rectState.x
-      newY = rectState.y
-      newWidth = rectState.width
-      newHeight = rectState.height
+      const r = $rectState
+      newX = $rectState.x
+      newY = $rectState.y
+      newWidth = $rectState.width
+      newHeight = $rectState.height
       switch (currentHandle.id) {
         case 'top-left':
           newX = Math.min(e.clientX - screenOffsetX, r.x + r.width)
@@ -116,33 +116,33 @@
           break
       }
     } else if (moving) {
-      newX = Math.min(Math.max(0, e.clientX - offsetX), svgRect.width - rectState.width)
-      newY = Math.min(Math.max(0, e.clientY - offsetY), svgRect.height - rectState.height)
-      newWidth = rectState.width
-      newHeight = rectState.height
+      newX = Math.min(Math.max(0, e.clientX - offsetX), svgRect.width - $rectState.width)
+      newY = Math.min(Math.max(0, e.clientY - offsetY), svgRect.height - $rectState.height)
+      newWidth = $rectState.width
+      newHeight = $rectState.height
     }
     if (drawing || resizing || moving) {
       updateFrameArea(newX, newY, newWidth, newHeight)
       updatetrimStatsPanel(newX + newWidth / 2, newY + newHeight / 2)
-      rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
+      rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
+      // rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
     }
   }
   function onMouseUp() {
     drawing = false
     resizing = false
     moving = false
-
-    isFrameInUse = rectState.width && rectState.height ? true : false
+    isFrameInUse = $rectState.width && $rectState.height ? true : false
     if (isFrameInUse) trimInfo.update(state => ({ ...state, ...relativeRectState }))
     trimInfo.update(state => ({ ...state, isDefined: isFrameInUse, triminprogress: false }))
   }
   function onMouseLeave(event) {
     if (drawing || resizing) {
       const svgRect = svg.getBoundingClientRect()
-      let newX = rectState.x
-      let newY = rectState.y
-      let newWidth = rectState.width
-      let newHeight = rectState.height
+      let newX = $rectState.x
+      let newY = $rectState.y
+      let newWidth = $rectState.width
+      let newHeight = $rectState.height
 
       if (event.clientX > svgRect.right) {
         newWidth = svgRect.width - newX
@@ -151,7 +151,8 @@
         newHeight = svgRect.height - newY
       }
       updateFrameArea(newX, newY, newWidth, newHeight)
-      rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
+      // rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
+      rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
     }
   }
   function updatetrimStatsPanel(x, y) {
@@ -206,10 +207,10 @@
   <div bind:this={trimStats} class="trim-stats-container">
     {#if isFrameInUse || drawing || moving || resizing}
       <div class="trim-stats">
-        <p><span>x:</span>{Math.floor(rectState.x)}</p>
-        <p><span>y:</span>{Math.floor(rectState.y)}</p>
-        <p><span>w:</span>{Math.floor(rectState.width)}</p>
-        <p><span>h:</span>{Math.floor(rectState.height)}</p>
+        <p><span>x:</span>{Math.floor($rectState.x)}</p>
+        <p><span>y:</span>{Math.floor($rectState.y)}</p>
+        <p><span>w:</span>{Math.floor($rectState.width)}</p>
+        <p><span>h:</span>{Math.floor($rectState.height)}</p>
       </div>
     {/if}
   </div>

@@ -1,23 +1,14 @@
-// // content.js
-// const defaultLocations = [
-//   'https://cdn.discordapp.com/attachments/'
-//   // ... add more default locations here
-// ]
-// const getAdditionalLocations = () => {
-//   const additionalLocations = localStorage?.getItem('additionalLocations')
-//   return additionalLocations ? JSON.parse(additionalLocations) : []
-// }
+// content.js
+var imageMaxMb = 16
+let bypassQuickTrim = false
 
-// const isLocationAllowed = location => {
-//   const additionalLocations = getAdditionalLocations()
-//   const isAllowed = defaultLocations.some(defaultLocation => location.startsWith(defaultLocation)) || additionalLocations.some(additionalLocation => location.startsWith(additionalLocation))
-//   return isAllowed
-// }
-
-// const locationIsAllowed = isLocationAllowed(window.location.href)
-
-if (window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
-  const imageUrl = encodeURIComponent(window.location.href)
-  const viewerUrl = chrome.runtime.getURL(`index.html?image=${imageUrl}`)
-  window.location.replace(viewerUrl)
+function testOpenQuickTrim() {
+  if (!bypassQuickTrim && window.location.href.match(/\.(png|jpg|jpeg|webp)$/i)) {
+    const imageUrl = encodeURIComponent(window.location.href)
+    const viewerUrl = chrome.runtime.getURL(`index.html?image=${imageUrl}`)
+    console.log('QuickTrim redirecting to', viewerUrl)
+    window.location.replace(viewerUrl)
+  }
 }
+
+testOpenQuickTrim()

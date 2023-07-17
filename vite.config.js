@@ -34,7 +34,9 @@ export default defineConfig({
         app: './index.html'
       },
       output: {
-        app: 'index.html'
+        app: 'index.html',
+        entryFileNames: `assets/svelte-app.js`, // consistent file name,
+        assetFileNames: `assets/svelte-css.[ext]` // consistent asset file names
       }
     }
   }

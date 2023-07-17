@@ -81,6 +81,8 @@
         <div class="filename-text editing" class:editing={$isEditing} tabindex="-1" on:blur={stopEditingFilename} bind:this={editableDiv} bind:textContent={currentName} on:click|stopPropagation contenteditable on:keydown={escapeKeyHandler}>
           {currentName}
         </div>
+        <!-- <input id="editableInput" class="filename-text editing" class:editing={$isEditing} on:blur={stopEditingFilename} value={currentName} on:keydown={escapeKeyHandler} /> -->
+
         <button class="icon-download" on:click={() => handleDownloadAction(index, dispatch)} />
       </div>
       <button class="icon-clipboard" on:click={() => handleClipboardAction(index, dispatch)} />
@@ -155,6 +157,15 @@
     gap: calc(var(--apppadding) / 2);
     align-items: center;
     justify-content: space-between;
+    /* min-width: 500px; */
+    /* left: 50%; */
+    /* transform: translateX(-50%); */
+    min-width: 360px;
+    left: 0;
+    right: auto;
+    /* margin-left: -50%; */
+    /* margin-right: -50%; */
+    transition: all 0.3s ease-in-out;
   }
   .icon-clipboard,
   .icon-download,

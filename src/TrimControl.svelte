@@ -55,8 +55,6 @@
   })
 
   async function onMouseDown(event) {
-    console.log('TRIM MOUSEDOWN')
-
     svgRect = svg.getBoundingClientRect()
     screenOffsetX = svgRect.left
     screenOffsetY = svgRect.top
@@ -129,7 +127,6 @@
     }
   }
   function onMouseUp() {
-    console.log('TRIM MOUSEUP')
     drawing = false
     resizing = false
     moving = false

@@ -11,7 +11,6 @@ export const toggleTrimming = () => {
   isTrimming.update(value => !value)
 }
 export const handleDownloadAction = (index, dispatch) => {
-  console.log('handleDownloadAction', index, get(trimInfo).index)
   if (index !== get(trimInfo).index) return
   dispatch('imageaction', 'download')
 }

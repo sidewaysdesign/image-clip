@@ -43,7 +43,6 @@
 
   const transitionStart = e => {
     if (e.target === e.currentTarget) {
-      console.log('transitionStart TRUE')
       isTransitioning.set(true)
     }
   }
@@ -68,7 +67,13 @@
     let canvas
 
     try {
+      // const img = await getImageRef(url)
+
+      const start = performance.now() // Start timer
       const img = await getImageRef(url)
+      const end = performance.now() // End timer
+      const timeTaken = ((end - start) / 1000).toFixed(2) // Time in fractional seconds
+
       width = img.width
       height = img.height
       canvas = getFullCanvas(img, 0, 0, width, height)
@@ -194,7 +199,6 @@
     } else {
       const downloadCanvas = $trimInfo.isDefined ? trimCanvas(fullCanvas, $trimInfo) : fullCanvas
       if (action === 'download') {
-        console.log('rootnames:', $rootnames)
         downloadCanvasAsFile(downloadCanvas, $rootnames[currentIndex], imageExtension)
         dispatch('toastNotice', $trimInfo.isDefined ? `Trim area downloading.` : 'Full image downloading.')
       } else if (action === 'clipboard') {
@@ -246,11 +250,11 @@
   </div>
 {:else if imageWidth && imageHeight}
   <div class="image-base">
-    <div class="image-shim" style={`${aspectRatioCSS}`}>
+    <div class="image-shim" class:quadrant-padding={mode === 'quadrant'} style={`${aspectRatioCSS}`}>
       <div class="image-tracker" class:expanded class:quadrants={mode === 'quadrant'}>
         {#if mode === 'quadrant'}
           {#each [1, 2, 3, 4] as index}
-            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={mode} on:mouseenter={() => switchHandler(index)} on:transitionstart={transitionStart} on:transitionend={transitionEnd}>
+            <div style={`background-image:url(${imageUrl});${aspectRatioCSS}`} class:active={currentIndex === index} class={`${mode} quadrant-${index}`} on:mouseenter={() => switchHandler(index)} on:transitionstart={transitionStart} on:transitionend={transitionEnd}>
               <div bind:this={canvasContainer} />
               <ImageAction {index} frameSpecs={{ ...frameSpecs, ...quadOffsets(index), factor: 0.5 }} on:expandaction={() => expandHandler()} on:imageaction={e => imageActionHandler(e.detail)} />
             </div>
@@ -276,12 +280,18 @@
     margin-right: auto;
     max-width: 100vw;
     max-height: 100vh;
+    transition: all 0.375s ease-in-out;
+  }
+  .image-shim.quadrant-padding {
+    /* transition: all 0.5s ease-in-out; */
+    max-width: calc(100vw - 2 * var(--quadgap));
+    max-height: calc(100vh - 2 * var(--quadgap));
   }
   .image-tracker {
     display: block;
     position: absolute;
-    min-width: 20rem;
-    min-height: 20rem;
+    /* min-width: 20rem; */
+    /* min-height: 20rem; */
     left: 0;
     top: 0;
     right: 0;
@@ -302,91 +312,88 @@
     background-repeat: no-repeat;
   }
   .quadrants .quadrant {
-    width: calc(50% - var(--quadgap));
-    height: calc(50% - var(--quadgap));
+    width: 50%;
+    height: 50%;
     margin: 0;
     position: absolute;
     background-size: 200%;
-    transition: margin 0.5s ease-in-out, width 0.5s ease-in-out, height 0.5s ease-in-out, opacity 0.375s ease-in-out, z-index 0s ease-in-out;
-    transition-delay: 0s, 0s, 0s, 0.5s, 0.5s;
+    transition: top 0.375s ease-in-out, bottom 0.375s ease-in-out, left 0.375s ease-in-out, right 0.375s ease-in-out, margin 0.375s ease-in-out, width 0.375s ease-in-out, height 0.375s ease-in-out, opacity 0.375s ease-in-out, z-index 0s ease-in-out, background-position 0.375s ease-in-out;
+    transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s, 0.5s, 0.5s, 0s;
     z-index: 0;
   }
   .quadrant:first-child {
     top: 0;
     left: 0;
-    margin-right: var(--quadgap);
-    margin-bottom: var(--quadgap);
+    margin: calc(var(--quadgap) * -1) 0 0 calc(var(--quadgap) * -1);
+    transform: translate(calc(var(--quadgap) * -1), calc(var(--quadgap) * -1));
+    animation: quad-1 0.75s forwards;
   }
   .quadrant:nth-child(2) {
     top: 0;
     right: 0;
-    margin-left: var(--quadgap);
-    margin-bottom: var(--quadgap);
+    margin: calc(var(--quadgap) * -1) calc(var(--quadgap) * -1) 0 0;
     background-position: 100% 0;
+    animation: quad-2 0.75s forwards;
   }
   .quadrant:nth-child(3) {
     bottom: 0;
     left: 0;
-    margin-right: var(--quadgap);
-    margin-top: var(--quadgap);
+    margin: 0 0 calc(var(--quadgap) * -1) calc(var(--quadgap) * -1);
+    background-position: 100% 0;
     background-position: 0% 100%;
+    animation: quad-3 0.75s forwards;
   }
   .quadrant:nth-child(4) {
     bottom: 0;
     right: 0;
-    margin-left: var(--quadgap);
-    margin-top: var(--quadgap);
+    margin: 0 calc(var(--quadgap) * -1) calc(var(--quadgap) * -1) 0;
     background-position: 100% 100%;
+    animation: quad-4 0.75s forwards;
   }
-  @keyframes quadsize-intro {
+
+  @keyframes quad-1 {
     0% {
-      width: 50%;
-      height: 50%;
+      transform: translate(var(--quadgap), var(--quadgap));
     }
     100% {
-      width: calc(50% - var(--quadgap));
-      height: calc(50% - var(--quadgap));
+      transform: translate(0, 0);
     }
   }
-  @keyframes margin-topleft-intro {
+  @keyframes quad-2 {
     0% {
-      margin-right: 0;
-      margin-bottom: 0;
+      transform: translate(calc(var(--quadgap) * -1), calc(var(--quadgap) * 1));
     }
     100% {
-      margin-right: var(--quadgap);
-      margin-bottom: var(--quadgap);
+      transform: translate(0, 0);
     }
   }
-  @keyframes margin-topright-intro {
+  @keyframes quad-3 {
     0% {
-      margin-left: 0;
-      margin-bottom: 0;
+      transform: translate(var(--quadgap), calc(var(--quadgap) * -1));
     }
     100% {
-      margin-left: var(--quadgap);
-      margin-bottom: var(--quadgap);
+      transform: translate(0, 0);
     }
   }
-  @keyframes margin-bottomleft-intro {
+  @keyframes quad-4 {
     0% {
-      margin-right: 0;
-      margin-top: 0;
+      transform: translate(calc(var(--quadgap) * -1), calc(var(--quadgap) * -1));
     }
     100% {
-      margin-right: var(--quadgap);
-      margin-top: var(--quadgap);
+      transform: translate(0, 0);
     }
   }
-  @keyframes margin-bottomright-intro {
-    0% {
-      margin-left: 0;
-      margin-top: 0;
-    }
-    100% {
-      margin-left: var(--quadgap);
-      margin-top: var(--quadgap);
-    }
+
+  .quadrant:first-child :global(.controls-wrapper),
+  .quadrant:nth-child(3) :global(.controls-wrapper) {
+    left: auto;
+    right: 0;
+  }
+  .whole :global(.controls-wrapper),
+  .quadrants.expanded .quadrant :global(.controls-wrapper) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
   }
 
   .quadrants.expanded .quadrant {

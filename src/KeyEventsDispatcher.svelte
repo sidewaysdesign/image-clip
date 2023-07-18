@@ -71,11 +71,8 @@
   }
   const nudgeTrim = (directionX, directionY, event) => {
     let { x, y, width, height } = $rectState
-    console.table({ x, y, width, height })
-
     let nudgeValue = event.shiftKey ? 10 : 1 // Adjust the nudge size based on if the shift key is pressed
     let extendValue = event.ctrlKey ? nudgeValue : 0 // Only extend when Ctrl is pressed
-
     let newX = x + directionX * (directionX < 0 ? 2 : 1) * nudgeValue - extendValue * directionX
     let newY = y + directionY * (directionY < 0 ? 2 : 1) * nudgeValue - extendValue * directionY
     let newWidth = width + extendValue * Math.abs(directionX)
@@ -93,17 +90,13 @@
 
     // Check if the new frame exceeds the image width
     if (newX + newWidth > $sourceImage.width) {
-      // If extending, adjust the width to not exceed the image's width
       if (extendValue > 0) newWidth = $sourceImage.width - newX
-      // If moving, adjust the X position to not exceed the image's width minus the frame width
       else newX = $sourceImage.width - newWidth
     }
 
     // Check if the new frame exceeds the image height
     if (newY + newHeight > $sourceImage.height) {
-      // If extending, adjust the height to not exceed the image's height
       if (extendValue > 0) newHeight = $sourceImage.height - newY
-      // If moving, adjust the Y position to not exceed the image's height minus the frame height
       else newY = $sourceImage.height - newHeight
     }
 

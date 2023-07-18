@@ -23,11 +23,6 @@
 
   let scaleX, scaleY
 
-  $: {
-    scaleX = svg ? svg.clientWidth / imageWidth : 1
-    scaleY = svg ? svg.clientHeight / imageHeight : 1
-  }
-
   const focusOverlayName = 'focusOverlay'
   const movehandleName = 'movehandle'
   const handles = [
@@ -37,6 +32,10 @@
     { id: 'bottom-right', cursor: 'se-resize' }
   ]
   const handleSize = 14
+  $: {
+    scaleX = svg ? svg.clientWidth / imageWidth : 1
+    scaleY = svg ? svg.clientHeight / imageHeight : 1
+  }
 
   $: {
     if (svg) {
@@ -50,14 +49,17 @@
   }
 
   $: if ($rectState.update) {
+    let { x, y, width, height } = $rectState
     rectState.update(state => ({ ...state, update: false }))
     updateFrameArea($rectState.x * scaleX, $rectState.y * scaleY, $rectState.width * scaleX, $rectState.height * scaleY)
+    trimInfo.update(state => ({ ...state, x: x * factor + quadOffsetX, y: y * factor + quadOffsetY, width: width * factor, height: height * factor }))
   }
 
   onMount(() => {
     svg.addEventListener('mousedown', onMouseDown)
     svg.addEventListener('mousemove', onMouseMove)
     svg.addEventListener('mouseup', onMouseUp)
+
     handles.forEach(h => {
       h.ref = document.querySelector(`svg #${h.id}`)
     })
@@ -89,6 +91,7 @@
     }
 
     trimInfo.update(state => ({ ...state, triminprogress: true }))
+    if (!moving) window.addEventListener('mousemove', onWindowMouseMove)
   }
 
   function onMouseMove(e) {
@@ -141,6 +144,7 @@
   }
 
   function onMouseUp() {
+    if (!moving) window.removeEventListener('mousemove', onWindowMouseMove)
     drawing = false
     resizing = false
     moving = false
@@ -148,24 +152,49 @@
     if (isFrameInUse) trimInfo.update(state => ({ ...state, ...relativeRectState }))
     trimInfo.update(state => ({ ...state, isDefined: isFrameInUse, triminprogress: false }))
   }
+  const onWindowMouseMove = event => {
+    svgRect = svg.getBoundingClientRect()
 
-  function onMouseLeave(event) {
-    if (drawing || resizing) {
-      const svgRect = svg.getBoundingClientRect()
-      let newX = $rectState.x
-      let newY = $rectState.y
-      let newWidth = $rectState.width
-      let newHeight = $rectState.height
+    if (event.buttons === 1) {
+      let directionX = event.clientX < svgRect.left ? -1 : event.clientX > svgRect.right ? 1 : 0
+      let directionY = event.clientY < svgRect.top ? -1 : event.clientY > svgRect.bottom ? 1 : 0
 
-      if (event.clientX > svgRect.right) {
-        newWidth = (svgRect.width - newX * scaleX) / scaleX
+      if (directionX || directionY) {
+        edgeTrim(directionX, directionY)
+        onMouseUp()
       }
-      if (event.clientY > svgRect.bottom) {
-        newHeight = (svgRect.height - newY * scaleY) / scaleY
-      }
-      updateFrameArea(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
-      rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
     }
+  }
+
+  const edgeTrim = (directionX, directionY) => {
+    let { x, y, width, height } = $rectState
+    let newX = x,
+      newY = y,
+      newWidth = width,
+      newHeight = height
+
+    // If directionX is positive, we exited on the right side
+    if (directionX > 0) {
+      newWidth = $sourceImage.width - x
+    }
+
+    // If directionX is negative, we exited on the left side
+    if (directionX < 0) {
+      newX = 0
+      newWidth = x + width
+    }
+
+    // If directionY is positive, we exited on the bottom
+    if (directionY > 0) {
+      newHeight = $sourceImage.height - y
+    }
+
+    // If directionY is negative, we exited on the top
+    if (directionY < 0) {
+      newY = 0
+      newHeight = y + height
+    }
+    rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight, update: true }))
   }
 
   function updatetrimStatsPanel(x, y, width, height) {
@@ -222,10 +251,10 @@
   <div bind:this={trimStats} class="trim-stats-container">
     {#if isFrameInUse || drawing || moving || resizing}
       <div class="trim-stats">
-        <p><span>x:</span>{Math.floor($rectState.x)}</p>
-        <p><span>y:</span>{Math.floor($rectState.y)}</p>
-        <p><span>w:</span>{Math.floor($rectState.width)}</p>
-        <p><span>h:</span>{Math.floor($rectState.height)}</p>
+        <p><span>x:</span>{Math.floor($rectState.x * factor)}</p>
+        <p><span>y:</span>{Math.floor($rectState.y * factor)}</p>
+        <p><span>w:</span>{Math.floor($rectState.width * factor)}</p>
+        <p><span>h:</span>{Math.floor($rectState.height * factor)}</p>
       </div>
     {/if}
   </div>

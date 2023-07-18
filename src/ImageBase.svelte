@@ -40,6 +40,12 @@
       canvasContainer.appendChild(fullCanvas)
     }
   })
+  // const indexSwitch = index => {
+  //   if (expanded) return
+  //   currentIndex = index
+  //   trimInfo.update(state => ({ ...state, index: index }))
+  // }
+  // const switchQuadrantHandler = e => indexSwitch(e.detail.index)
 
   const transitionStart = e => {
     if (e.target === e.currentTarget) {
@@ -212,11 +218,6 @@
     const offY = parseInt(index) === 1 || parseInt(index) === 2 ? 0 : imageHeight / 2
     return { x1: offX, y1: offY }
   }
-  const indexSwitch = index => {
-    if (expanded) return
-    currentIndex = index
-    trimInfo.update(state => ({ ...state, index: index }))
-  }
   const expandHandler = () => {
     trimInfo.update(state => ({ ...state, expanded: !state.expanded }))
   }
@@ -228,6 +229,13 @@
       indexSwitch(index)
     }
   }
+
+  const indexSwitch = index => {
+    if (expanded) return
+    currentIndex = index
+    trimInfo.update(state => ({ ...state, index: index }))
+  }
+
   const switchQuadrantHandler = e => indexSwitch(e.detail.index)
   const copyClipboardHandler = e => imageActionHandler('clipboard')
   const downloadFileHandler = e => imageActionHandler('download')
@@ -235,7 +243,6 @@
 </script>
 
 <KeyEventDispatcher on:downloadfile={downloadFileHandler} on:downloadall={downloadAllHandler} on:copytoclipboard={copyClipboardHandler} on:switchquadrant={switchQuadrantHandler} on:expandaction={() => expandHandler()} />
-
 {#if isLoading}
   <div class="spinner-container">
     <div class="spinner">Loading...</div>

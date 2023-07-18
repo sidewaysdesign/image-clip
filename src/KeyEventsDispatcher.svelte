@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, params, isTrimming, rectState, sourceImage } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, params, isTrimming, rectState, sourceImage, popupOpen } from './stores.js'
   import { toggleFullscreen, toggleTrimming, canIgnoreKeydown } from './utils.js'
 
   $: currentIndex = $trimInfo.index
@@ -102,7 +102,9 @@
 
     rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight, update: true }))
   }
-
+  const popupHandler = () => {
+    popupOpen.set(!$popupOpen)
+  }
   const handleKeydown = event => {
     if (event.metaKey || event.altKey) return // ignore system/app shortcuts
     if (canIgnoreKeydown()) return
@@ -118,6 +120,7 @@
       D: () => downloadAllHandler(),
       d: () => downloadFileHandler(),
       m: () => modeSwitchHandler(),
+      '?': () => popupHandler(),
       ArrowLeft: e => nudgeTrim(-1, 0, e),
       ArrowUp: e => nudgeTrim(0, -1, e),
       ArrowRight: e => nudgeTrim(1, 0, e),

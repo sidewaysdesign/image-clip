@@ -33,6 +33,7 @@ export const sourceImage = writable({
   extension: ''
 })
 export const isTrimming = writable(false)
+export const popupOpen = writable(false)
 export const isEditing = writable(false)
 export const isEditingElement = writable(null)
 export const isFullScreen = writable(false)

@@ -276,7 +276,7 @@
     color: #fff;
     outline: none;
     cursor: text;
-    outline: 1px dotted rgba(255, 255, 255, 0.5);
-    outline-offset: 0.5rem;
+    /* outline: 1px dotted rgba(255, 255, 255, 0.5); */
+    /* outline-offset: 0.5rem; */
   }
 </style>

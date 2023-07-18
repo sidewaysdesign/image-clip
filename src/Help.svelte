@@ -1,28 +1,27 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { fade, scale } from 'svelte/transition'
-  import { quadsuffix } from './stores.js'
+  import { quadsuffix, popupOpen } from './stores.js'
   import { get_binding_group_value } from 'svelte/internal'
   import HelpArrows from './HelpArrows.svelte'
 
-  export let popupOpen
-
   const year = new Date().getFullYear()
 
-  onMount(() => document.addEventListener('keydown', handleKeydown))
-  onDestroy(() => document.removeEventListener('keydown', handleKeydown))
+  onMount(() => document.addEventListener('keydown', handleKeyDown))
+  onDestroy(() => document.removeEventListener('keydown', handleKeyDown))
 
-  function handleKeydown(event) {
+  function handleKeyDown(event) {
     const keyActions = {
-      Escape: () => (popupOpen = false)
+      Escape: closePopup()
     }
     const action = keyActions[event.key]
     if (action) action(event)
   }
-  const closePopup = () => (popupOpen = false)
-  function handleKeyDown(event) {
-    if (event.key === 'Escape') closePopup()
-  }
+  const closePopup = () => popupOpen.set(false)
+
+  // function handleKeyDown(event) {
+  //   if (event.key === 'Escape') closePopup()
+  // }
 </script>
 
 <div class="help-page-overlay" transition:fade={{ duration: 250 }} on:click={closePopup} on:keydown={handleKeyDown} />
@@ -106,6 +105,12 @@
       <div class="shortcuts-section">
         <ul class="nobullets shortcut-list">
           <li><span class="keycap">M</span> Toggle between whole and quadrant modes</li>
+          <li>
+            <div class="combo">
+              <span class="keycap">1</span>&nbsp;<span class="keycap">2</span>&nbsp;<span class="keycap">3</span>&nbsp;<span class="keycap">4</span>
+            </div>
+            Switch focus to specific quadrant
+          </li>
           <li><span class="keycap">F</span> Toggle fullscreen mode (in quadrant mode)</li>
           <li><span class="keycap">T</span> Activate trim tool</li>
           <li>
@@ -212,7 +217,7 @@
     padding: 0.125rem 0.75rem;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
   }
   .help-page-wrapper {
     border: 1px solid white;

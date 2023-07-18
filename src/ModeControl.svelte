@@ -1,10 +1,9 @@
 <script>
-  import { trimInfo, params, isFullScreen } from './stores.js'
+  import { trimInfo, params, isFullScreen, popupOpen } from './stores.js'
 
   import Help from './Help.svelte'
 
   let tucked = false
-  let popupOpen = false
 
   const toggleMode = newMode => {
     trimInfo.update(state => ({ ...state, cancelTrim: true }))
@@ -18,9 +17,9 @@
       params.update(state => ({ ...state, mode: 'whole' }))
     }
   }
-  const handleOpen = () => (popupOpen = true)
+  const handleOpen = () => popupOpen.set(true)
   const handleOpenKeyEvent = event => {
-    if (event.key === '?') popupOpen = true
+    if (event.key === '?') popupOpen.set(true)
   }
   const tuckIt = () => {
     tucked = true
@@ -49,8 +48,8 @@
     <div aria-hidden="true" class="mode-control-hide2" on:click={untuckIt} />
   </div>
 </div>
-{#if popupOpen}
-  <Help bind:popupOpen />
+{#if $popupOpen}
+  <Help />
 {/if}
 
 <style>
@@ -121,6 +120,7 @@
     transition: opacity 0.2s ease-in-out;
     font-family: var(--fonts);
     opacity: 0.8;
+    font-weight: lighter;
   }
   .byline a:hover {
     opacity: 1;

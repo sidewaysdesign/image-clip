@@ -1,6 +1,6 @@
 <script>
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames, trimInfo, isFullScreen, params, quadsuffix, sourceImage } from './stores.js'
+  import { rootnames, isFullScreen, params, quadsuffix, sourceImage } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
 
@@ -9,7 +9,6 @@
 
   if (window.location.search) urlParams = new URLSearchParams(window.location.search)
 
-  // imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1105121925421867099/sidewaysdesign_multiple_expressions_of_a_cow_in_the_style_of_sa_62ee6891-cbb7-4f2f-9514-e21833b9fecb.webp'
   // imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1126246524905607279/sidewaysdesign_white_palette_on_a_white_background_3c475684-5029-459b-ab37-f5bfac7e9ea4.png'
   imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1126296883850137600/sidewaysdesign_greyscale_city_skyline_multicolour_equalizer_gra_11365019-942e-4970-9a45-b109a2fe7c08.png'
 
@@ -36,6 +35,8 @@
   $rootnames = state.filenames
 
   let currentIndex = state.currentIndex
+  let popupOpen = false
+
   $: state.currentIndex = currentIndex
 </script>
 
@@ -46,7 +47,6 @@
     </div>
   </div>
   <ModeControl />
-  <!-- <div class="close-button" /> -->
 </main>
 <SvelteToast />
 

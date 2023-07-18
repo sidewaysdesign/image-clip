@@ -55,7 +55,7 @@
         if (i > 0) {
           // Skip the first index as it's the main image name
           let possibleName = possiblePreviousNames[i - 1] // Subtract 1 because possiblePreviousNames indices start from 0
-          if (possibleName && currentName === possibleName) updatedNames[i] = `${newName}${$quadsuffix}${i}`
+          if (possibleName && (currentName === possibleName || currentName === newName)) updatedNames[i] = `${newName}${$quadsuffix}${i}`
         }
       })
     } else {
@@ -171,7 +171,7 @@
     gap: calc(var(--apppadding) / 2);
     align-items: center;
     justify-content: space-between;
-    min-width: 360px;
+    min-width: 290px;
     left: 0;
     right: auto;
     transition: all 0.3s ease-in-out;

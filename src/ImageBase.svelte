@@ -289,8 +289,6 @@
   .image-tracker {
     display: block;
     position: absolute;
-    /* min-width: 20rem; */
-    /* min-height: 20rem; */
     left: 0;
     top: 0;
     right: 0;
@@ -436,8 +434,8 @@
     border-left-color: #faaa42;
     width: 10vw;
     height: 10vw;
-    min-width: 90px;
-    min-height: 90px;
+    min-width: 98px;
+    min-height: 98px;
     animation: spin 4s linear infinite;
     display: flex;
     align-items: center;

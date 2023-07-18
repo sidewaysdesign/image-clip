@@ -1,11 +1,10 @@
 <script>
   import { SvelteToast, toast } from '@zerodevx/svelte-toast'
-  import { rootnames, trimInfo, isFullScreen, params, quadsuffix } from './stores.js'
+  import { rootnames, trimInfo, isFullScreen, params, quadsuffix, sourceImage } from './stores.js'
   import ModeControl from './ModeControl.svelte'
   import ImageBase from './ImageBase.svelte'
 
   let imageUrl
-  let originalUrl
   let urlParams
 
   if (window.location.search) urlParams = new URLSearchParams(window.location.search)
@@ -24,7 +23,7 @@
   }
 
   const { rootname, imageExtension } = splitFileNameFromUrl(imageUrl)
-
+  sourceImage.update(state => ({ ...state, url: imageUrl, extension: imageExtension }))
   let { mode } = $params
 
   let state = {
@@ -43,7 +42,7 @@
 <main>
   <div class="image-wrapper">
     <div class="image-stage" class:fullscreen={$isFullScreen}>
-      <ImageBase {imageUrl} {currentIndex} on:toastNotice={toastHandler} {imageExtension} />
+      <ImageBase {imageUrl} {currentIndex} on:toastNotice={toastHandler} />
     </div>
   </div>
   <ModeControl />

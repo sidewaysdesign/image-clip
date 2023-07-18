@@ -1,11 +1,10 @@
 <script>
   import { onMount, afterUpdate, createEventDispatcher } from 'svelte'
-  import { rootnames, trimInfo, isTransitioning, lastHovered, params } from './stores.js'
+  import { rootnames, trimInfo, isTransitioning, lastHovered, params, sourceImage } from './stores.js'
   import ImageAction from './ImageAction.svelte'
   import KeyEventDispatcher from './KeyEventsDispatcher.svelte'
 
   export let imageUrl
-  export let imageExtension
   export let currentIndex
 
   let isLoading = true
@@ -16,13 +15,14 @@
   let expanded = false
   let aspectRatioCSS = ''
   let frameSpecs
-
+  $: imageExtension = $sourceImage.extension
   $: mode = $params.mode
   $: index = $trimInfo.index
   $: expanded = $trimInfo.expanded
 
   onMount(async () => {
     const imageObj = await instantiateImageProps(imageUrl)
+    sourceImage.update(state => ({ ...state, width: imageObj.width, height: imageObj.height }))
     frameSpecs = {
       width: imageObj.width,
       height: imageObj.height,
@@ -49,7 +49,6 @@
   const transitionEnd = e => {
     if (e.target === e.currentTarget) {
       isTransitioning.set(false)
-      console.log('$lastHovered:', $lastHovered)
       if ($lastHovered && $lastHovered !== currentIndex) indexSwitch($lastHovered)
     }
   }

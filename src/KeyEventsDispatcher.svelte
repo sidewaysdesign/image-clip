@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from 'svelte'
-  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, params, isTrimming } from './stores.js'
+  import { rootnames, trimInfo, isEditing, isFullScreen, originalName, params, isTrimming, rectState, sourceImage } from './stores.js'
   import { toggleFullscreen, toggleTrimming, canIgnoreKeydown } from './utils.js'
 
   $: currentIndex = $trimInfo.index
@@ -69,9 +69,47 @@
     currentIndex = newIndex
     quadSwitch(currentIndex)
   }
-  const jumpX = () => {
-    console.log('jumpy jump')
+  const nudgeTrim = (directionX, directionY, event) => {
+    let { x, y, width, height } = $rectState
+    console.table({ x, y, width, height })
+
+    let nudgeValue = event.shiftKey ? 10 : 1 // Adjust the nudge size based on if the shift key is pressed
+    let extendValue = event.ctrlKey ? nudgeValue : 0 // Only extend when Ctrl is pressed
+
+    let newX = x + directionX * (directionX < 0 ? 2 : 1) * nudgeValue - extendValue * directionX
+    let newY = y + directionY * (directionY < 0 ? 2 : 1) * nudgeValue - extendValue * directionY
+    let newWidth = width + extendValue * Math.abs(directionX)
+    let newHeight = height + extendValue * Math.abs(directionY)
+
+    // Check for boundaries and adjust the nudges accordingly
+    if (newX < 0) {
+      newX = 0
+      newWidth = x + width // keep the right edge constant
+    }
+    if (newY < 0) {
+      newY = 0
+      newHeight = y + height // keep the bottom edge constant
+    }
+
+    // Check if the new frame exceeds the image width
+    if (newX + newWidth > $sourceImage.width) {
+      // If extending, adjust the width to not exceed the image's width
+      if (extendValue > 0) newWidth = $sourceImage.width - newX
+      // If moving, adjust the X position to not exceed the image's width minus the frame width
+      else newX = $sourceImage.width - newWidth
+    }
+
+    // Check if the new frame exceeds the image height
+    if (newY + newHeight > $sourceImage.height) {
+      // If extending, adjust the height to not exceed the image's height
+      if (extendValue > 0) newHeight = $sourceImage.height - newY
+      // If moving, adjust the Y position to not exceed the image's height minus the frame height
+      else newY = $sourceImage.height - newHeight
+    }
+
+    rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight, update: true }))
   }
+
   const handleKeydown = event => {
     if (event.metaKey || event.altKey) return // ignore system/app shortcuts
     if (canIgnoreKeydown()) return
@@ -87,7 +125,10 @@
       D: () => downloadAllHandler(),
       d: () => downloadFileHandler(),
       m: () => modeSwitchHandler(),
-      x: () => jumpX(),
+      ArrowLeft: e => nudgeTrim(-1, 0, e),
+      ArrowUp: e => nudgeTrim(0, -1, e),
+      ArrowRight: e => nudgeTrim(1, 0, e),
+      ArrowDown: e => nudgeTrim(0, 1, e),
       Escape: () => {
         blurAnythingActive()
         trimInfo.update(state => ({ ...state, cancelTrim: true }))

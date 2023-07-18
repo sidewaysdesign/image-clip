@@ -23,7 +23,14 @@ export const rectState = writable({
   x: 0,
   y: 0,
   width: 0,
-  height: 0
+  height: 0,
+  update: false
+})
+export const sourceImage = writable({
+  width: 0,
+  height: 0,
+  url: '',
+  extension: ''
 })
 export const isTrimming = writable(false)
 export const isEditing = writable(false)

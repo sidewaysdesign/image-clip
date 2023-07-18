@@ -22,11 +22,17 @@
   const handleOpenKeyEvent = event => {
     if (event.key === '?') popupOpen = true
   }
+  const tuckIt = () => {
+    tucked = true
+  }
+  const untuckIt = () => {
+    tucked = false
+  }
 </script>
 
 <div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>
   <div class="mode-control-group">
-    <div class="mode-control-hide1" aria-hidden="true" on:click={() => (tucked = true)} />
+    <div class="mode-control-hide1" aria-hidden="true" on:click={tuckIt} />
     <div>
       <div class="wordmark" />
       <p class="byline"><a href="https://sidewaysdesign.com" target="blank">by Sideways Design</a></p>
@@ -40,7 +46,7 @@
         <span class="tooltip">Quadrants</span>
       </div>
     </div>
-    <div aria-hidden="true" class="mode-control-hide2" on:click={() => (tucked = false)} />
+    <div aria-hidden="true" class="mode-control-hide2" on:click={untuckIt} />
   </div>
 </div>
 {#if popupOpen}

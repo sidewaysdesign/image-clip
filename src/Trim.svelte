@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { trimInfo, rectState } from './stores'
+  import { trimInfo, rectState, sourceImage } from './stores'
   export let frameSpecs
 
   let svg, svgRect, focusOverlay, trimStats, rectObj
@@ -11,7 +11,6 @@
   let quadOffsetX = frameSpecs.x1
   let quadOffsetY = frameSpecs.y1
   let factor = frameSpecs.factor
-  // let rectState = $trimRect
 
   let drawing = false
   let resizing = false
@@ -21,6 +20,13 @@
   let offsetX, offsetY, screenOffsetX, screenOffsetY
   let relativeRectState = { x: quadOffsetX, y: quadOffsetY, width: imageWidth, height: imageHeight }
   let isFrameInUse = false
+
+  let scaleX, scaleY
+
+  $: {
+    scaleX = svg ? svg.clientWidth / imageWidth : 1
+    scaleY = svg ? svg.clientHeight / imageHeight : 1
+  }
 
   const focusOverlayName = 'focusOverlay'
   const movehandleName = 'movehandle'
@@ -35,12 +41,17 @@
   $: {
     if (svg) {
       relativeRectState = {
-        x: Math.floor(($rectState.x / svg.clientWidth) * imageWidth * factor) + quadOffsetX,
-        y: Math.floor(($rectState.y / svg.clientHeight) * imageHeight * factor) + quadOffsetY,
-        width: Math.floor(($rectState.width / svg.clientWidth) * imageWidth * factor),
-        height: Math.floor(($rectState.height / svg.clientHeight) * imageHeight * factor)
+        x: Math.floor($rectState.x * factor + quadOffsetX),
+        y: Math.floor($rectState.y * factor + quadOffsetY),
+        width: Math.floor($rectState.width * factor),
+        height: Math.floor($rectState.height * factor)
       }
     }
+  }
+
+  $: if ($rectState.update) {
+    rectState.update(state => ({ ...state, update: false }))
+    updateFrameArea($rectState.x * scaleX, $rectState.y * scaleY, $rectState.width * scaleX, $rectState.height * scaleY)
   }
 
   onMount(() => {
@@ -59,12 +70,12 @@
     svgRect = svg.getBoundingClientRect()
     screenOffsetX = svgRect.left
     screenOffsetY = svgRect.top
+    console.log(screenOffsetX)
     if (event.target === svg) {
-      offsetX = event.clientX - screenOffsetX
-      offsetY = event.clientY - screenOffsetY
+      offsetX = (event.clientX - screenOffsetX) / scaleX
+      offsetY = (event.clientY - screenOffsetY) / scaleY
       drawing = true
       svg.classList.remove('inactive')
-      // rectState = { x: 0, y: 0, width: 0, height: 0 }
       focusOverlay.setAttribute('d', `M0,0H${svgRect.width}V${svgRect.height}H0Z`)
     } else if (event.target.classList.contains('handle')) {
       offsetX = event.clientX - screenOffsetX
@@ -72,62 +83,63 @@
       resizing = true
       currentHandle = event.target
     } else if (event.target.id === 'movehandle') {
-      offsetX = event.clientX - $rectState.x
-      offsetY = event.clientY - $rectState.y
+      offsetX = event.clientX - screenOffsetX - $rectState.x * scaleX
+      offsetY = event.clientY - screenOffsetY - $rectState.y * scaleY
       moving = true
     }
 
     trimInfo.update(state => ({ ...state, triminprogress: true }))
-    // debugger
   }
+
   function onMouseMove(e) {
     let newX, newY, newWidth, newHeight
+
     if (drawing) {
-      newX = Math.min(offsetX, e.clientX - screenOffsetX)
-      newY = Math.min(offsetY, e.clientY - screenOffsetY)
-      newWidth = Math.abs(offsetX - e.clientX + screenOffsetX)
-      newHeight = Math.abs(offsetY - e.clientY + screenOffsetY)
+      newX = Math.min(offsetX, (e.clientX - screenOffsetX) / scaleX)
+      newY = Math.min(offsetY, (e.clientY - screenOffsetY) / scaleY)
+      newWidth = Math.abs(offsetX - (e.clientX - screenOffsetX) / scaleX)
+      newHeight = Math.abs(offsetY - (e.clientY - screenOffsetY) / scaleY)
     } else if (resizing) {
       const r = $rectState
-      newX = $rectState.x
-      newY = $rectState.y
-      newWidth = $rectState.width
-      newHeight = $rectState.height
+      newX = r.x
+      newY = r.y
+      newWidth = r.width
+      newHeight = r.height
       switch (currentHandle.id) {
         case 'top-left':
-          newX = Math.min(e.clientX - screenOffsetX, r.x + r.width)
-          newY = Math.min(e.clientY - screenOffsetY, r.y + r.height)
+          newX = Math.min((e.clientX - screenOffsetX) / scaleX, r.x + r.width)
+          newY = Math.min((e.clientY - screenOffsetY) / scaleY, r.y + r.height)
           newWidth = Math.abs(r.x + r.width - newX)
           newHeight = Math.abs(r.y + r.height - newY)
           break
         case 'top-right':
-          newY = Math.min(e.clientY - screenOffsetY, r.y + r.height)
-          newWidth = Math.abs(e.clientX - screenOffsetX - r.x)
+          newY = Math.min((e.clientY - screenOffsetY) / scaleY, r.y + r.height)
+          newWidth = Math.abs(e.clientX - screenOffsetX - r.x * scaleX) / scaleX
           newHeight = Math.abs(r.y + r.height - newY)
           break
         case 'bottom-left':
-          newX = Math.min(e.clientX - screenOffsetX, r.x + r.width)
+          newX = Math.min((e.clientX - screenOffsetX) / scaleX, r.x + r.width)
           newWidth = Math.abs(r.x + r.width - newX)
-          newHeight = Math.abs(e.clientY - screenOffsetY - r.y)
+          newHeight = Math.abs((e.clientY - screenOffsetY - r.y * scaleY) / scaleY)
           break
         case 'bottom-right':
-          newWidth = Math.abs(e.clientX - screenOffsetX - r.x)
-          newHeight = Math.abs(e.clientY - screenOffsetY - r.y)
+          newWidth = Math.abs((e.clientX - screenOffsetX - r.x * scaleX) / scaleX)
+          newHeight = Math.abs((e.clientY - screenOffsetY - r.y * scaleY) / scaleY)
           break
       }
     } else if (moving) {
-      newX = Math.min(Math.max(0, e.clientX - offsetX), svgRect.width - $rectState.width)
-      newY = Math.min(Math.max(0, e.clientY - offsetY), svgRect.height - $rectState.height)
+      newX = Math.min(Math.max(0, (e.clientX - screenOffsetX - offsetX) / scaleX), imageWidth - $rectState.width)
+      newY = Math.min(Math.max(0, (e.clientY - screenOffsetY - offsetY) / scaleY), imageHeight - $rectState.height)
       newWidth = $rectState.width
       newHeight = $rectState.height
     }
     if (drawing || resizing || moving) {
-      updateFrameArea(newX, newY, newWidth, newHeight)
-      updatetrimStatsPanel(newX + newWidth / 2, newY + newHeight / 2)
+      updateFrameArea(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
+      updatetrimStatsPanel(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
       rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
-      // rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
     }
   }
+
   function onMouseUp() {
     drawing = false
     resizing = false
@@ -136,6 +148,7 @@
     if (isFrameInUse) trimInfo.update(state => ({ ...state, ...relativeRectState }))
     trimInfo.update(state => ({ ...state, isDefined: isFrameInUse, triminprogress: false }))
   }
+
   function onMouseLeave(event) {
     if (drawing || resizing) {
       const svgRect = svg.getBoundingClientRect()
@@ -145,20 +158,21 @@
       let newHeight = $rectState.height
 
       if (event.clientX > svgRect.right) {
-        newWidth = svgRect.width - newX
+        newWidth = (svgRect.width - newX * scaleX) / scaleX
       }
       if (event.clientY > svgRect.bottom) {
-        newHeight = svgRect.height - newY
+        newHeight = (svgRect.height - newY * scaleY) / scaleY
       }
-      updateFrameArea(newX, newY, newWidth, newHeight)
-      // rectState = { x: newX, y: newY, width: newWidth, height: newHeight }
+      updateFrameArea(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
       rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
     }
   }
-  function updatetrimStatsPanel(x, y) {
-    trimStats.style.left = `${x}px`
-    trimStats.style.top = `${y}px`
+
+  function updatetrimStatsPanel(x, y, width, height) {
+    trimStats.style.left = `${x + width / 2}px`
+    trimStats.style.top = `${y + height / 2}px`
   }
+
   function updateFrameArea(x, y, width, height) {
     rectObj.setAttribute('x', x)
     rectObj.setAttribute('y', y)
@@ -191,6 +205,7 @@
     })
     focusOverlay.setAttribute('d', `M0,0H${svgRect.width}V${svgRect.height}H0ZM${x},${y}H${x + width}V${y + height}H${x}Z`)
   }
+
   function resetSVG() {
     isFrameInUse = false
     trimInfo.update(state => ({ ...state, isDefined: false, cancelTrim: true }))
@@ -232,9 +247,6 @@
 </div>
 
 <style>
-  svg {
-    /* transition: background-color 0.2s ease-in-out; */
-  }
   svg.inactive {
     background-color: rgba(0, 0, 0, 0.75);
     /* transition: background-color 0.1s; */

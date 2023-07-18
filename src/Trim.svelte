@@ -32,6 +32,7 @@
     { id: 'bottom-right', cursor: 'se-resize' }
   ]
   const handleSize = 14
+
   $: {
     scaleX = svg ? svg.clientWidth / imageWidth : 1
     scaleY = svg ? svg.clientHeight / imageHeight : 1
@@ -51,7 +52,8 @@
   $: if ($rectState.update) {
     let { x, y, width, height } = $rectState
     rectState.update(state => ({ ...state, update: false }))
-    updateFrameArea($rectState.x * scaleX, $rectState.y * scaleY, $rectState.width * scaleX, $rectState.height * scaleY)
+    updatetrimStatsPosition(x * scaleX, y * scaleY, width * scaleX, height * scaleY)
+    updateFrameArea(x * scaleX, y * scaleY, width * scaleX, height * scaleY)
     trimInfo.update(state => ({ ...state, x: x * factor + quadOffsetX, y: y * factor + quadOffsetY, width: width * factor, height: height * factor }))
   }
 
@@ -89,7 +91,6 @@
       offsetY = event.clientY - screenOffsetY - $rectState.y * scaleY
       moving = true
     }
-
     trimInfo.update(state => ({ ...state, triminprogress: true }))
     if (!moving) window.addEventListener('mousemove', onWindowMouseMove)
   }
@@ -138,7 +139,7 @@
     }
     if (drawing || resizing || moving) {
       updateFrameArea(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
-      updatetrimStatsPanel(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
+      updatetrimStatsPosition(newX * scaleX, newY * scaleY, newWidth * scaleX, newHeight * scaleY)
       rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight }))
     }
   }
@@ -197,7 +198,8 @@
     rectState.update(state => ({ ...state, x: newX, y: newY, width: newWidth, height: newHeight, update: true }))
   }
 
-  function updatetrimStatsPanel(x, y, width, height) {
+  function updatetrimStatsPosition(x, y, width, height) {
+    console.log('updateFrameArea', x, y, width, height)
     trimStats.style.left = `${x + width / 2}px`
     trimStats.style.top = `${y + height / 2}px`
   }

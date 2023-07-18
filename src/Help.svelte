@@ -1,6 +1,9 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { fade, scale } from 'svelte/transition'
+  import { quadsuffix } from './stores.js'
+  import { get_binding_group_value } from 'svelte/internal'
+  import HelpArrows from './HelpArrows.svelte'
 
   export let popupOpen
 
@@ -25,7 +28,7 @@
 <div class="help-page-overlay" transition:fade={{ duration: 250 }} on:click={closePopup} on:keydown={handleKeyDown} />
 <div class="help-page-wrapper" transition:fade={{ duration: 375 }}>
   <div class="wordmark" />
-  <h3>An extension to efficiently trim, save and copy to the clipboard images opened directly in the browser window.</h3>
+  <h3>Quickly trim, save and copy to the clipboard images opened directly in a browser window.</h3>
   <p class="center">Works with PNG, WebP and JPEG formats.</p>
   <div class="help-grid">
     <div class="icon-group">
@@ -42,7 +45,7 @@
     </div>
     <div class="help-text">
       <h4>Modes</h4>
-      <p>Whole mode focuses on the entire image. Quadrant mode splits the image into four equal quadrants, handy for quickly processing 2x2 image grids from sources like Midjourney. Controls appear in each quadrant when the mouse is hovered over them.</p>
+      <p>Whole mode is based on the entire image. Quadrant mode splits the image into four equal quadrants. In quadrant mode, hover over individual quadrant to activate.</p>
     </div>
     <div class="icon-group">
       <div class="icon-group">
@@ -60,7 +63,7 @@
     </div>
     <div class="help-text">
       <h4>Expand/Shrink</h4>
-      <p>In quadrant mode, Expand the quadrant full screen, or shrink to edit all 4 quadrants. The trim tool is only available when a quadrant is expanded.</p>
+      <p>Expand quadrant to fill screen/shrink return to 4 quadrants.</p>
     </div>
     <div class="icon-group">
       <div class="icon-unit">
@@ -70,7 +73,7 @@
 
     <div class="help-text">
       <h4>Trim</h4>
-      <p>Draw out a rectangular trim area to save or copy part of the image. Use resize handles to adjust the area, or click and drag within the trim area to move it. Clicking outside the trim area resets and deactivates trimming.</p>
+      <p>Draw a rectangular trim area to save or copy part of an image. Click-drag within trim area to move. Drag handles to adjust size. Click outside trim area to reset. Trim tool is only available in a quadrant when expanded.</p>
     </div>
     <div class="icon-group">
       <div class="icon-unit">
@@ -88,28 +91,57 @@
     </div>
     <div class="help-text">
       <h4>Download</h4>
-      <p>Saves the image (in the originating file format) to the browser download directory.</p>
+      <p>Saves the image to the browser download directory.</p>
     </div>
     <div class="icon-group">
       <div class="icon-unit" />
     </div>
     <div class="help-text">
       <h4>Filename</h4>
-      <p>Press enter Click on filename to edit. Note that quadrants are automatically suffixed with "_q1," "_q2," etc.</p>
+      <p>Click on filename area to edit. Quadrants are suffixed with "{$quadsuffix}1", "{$quadsuffix}2" <em>etc.</em> unless manually edited.</p>
     </div>
     <div />
     <div class="help-text">
       <h4 class="sm-center gap-top">Keyboard Shortcuts</h4>
-      <ul class="nobullets shortcut-list">
-        <li><span class="keycap">m</span> Toggle between whole and quadrant modes</li>
-        <li><span class="keycap">f</span> Toggle fullscreen mode (in quadrant mode)</li>
-        <li><span class="keycap">t</span> Activate trim tool</li>
-        <li><span class="keycap">c</span> Copy full image or trim area to clipboard</li>
-        <li><span class="keycap">d</span> Download full image or trim area.</li>
-        <li><span class="keycap">Shift</span>+ <span class="keycap">D</span> Download all quadrants (in quadrant mode).</li>
-        <li><span class="keycap">Esc</span> Deactivate trim tool</li>
-        <li><span class="keycap">Enter</span> Edit filename</li>
-      </ul>
+      <div class="shortcuts-section">
+        <ul class="nobullets shortcut-list">
+          <li><span class="keycap">M</span> Toggle between whole and quadrant modes</li>
+          <li><span class="keycap">F</span> Toggle fullscreen mode (in quadrant mode)</li>
+          <li><span class="keycap">T</span> Activate trim tool</li>
+          <li>
+            <div class="combo">
+              <HelpArrows />
+            </div>
+            Nudge trim frame
+          </li>
+          <li>
+            <div class="combo">
+              <span class="keycap">Shift</span>+ <HelpArrows />
+            </div>
+            Nudge trim frame by 10
+          </li>
+          <li>
+            <div class="combo">
+              <span class="keycap">Ctrl</span>+ <HelpArrows />
+            </div>
+            Extend trim frame
+          </li>
+          <li>
+            <div class="combo">
+              <span class="keycap">Shift</span> + <span class="keycap">Ctrl</span> + <HelpArrows />
+            </div>
+            Extend trim frame by 10
+          </li>
+          <li><span class="keycap">D</span> Download full image or trim area.</li>
+          <li>
+            <div class="combo"><span class="keycap">Shift</span>+ <span class="keycap">D</span></div>
+            Download all quadrants at once.
+          </li>
+          <li><span class="keycap">C</span> Copy full image or trim area to clipboard</li>
+          <li><span class="keycap">Esc</span> Exit actions or tools</li>
+          <!-- <li><span class="keycap">Enter</span> Edit filename</li> -->
+        </ul>
+      </div>
     </div>
   </div>
   <p class="year">@{year} <a href="https://sidewaysdesign.com/">Sideways Design</a></p>
@@ -176,7 +208,12 @@
     column-gap: 0.875rem;
     row-gap: 0.625rem;
   }
-
+  .shortcuts-section {
+    padding: 0.125rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    margin-top: 0.75rem;
+  }
   .help-page-wrapper {
     border: 1px solid white;
     position: absolute;
@@ -205,7 +242,6 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 0;
     opacity: 0.5;
-    /* animation: fade-in 0.375s ease-in-out forwards; */
   }
 
   .icon-close,
@@ -259,6 +295,7 @@
     align-items: center;
     flex-direction: column;
     flex-basis: 44px;
+    transform: translateY(-1px);
   }
   .icon-mode-quadrant,
   .icon-mode-whole {
@@ -289,12 +326,7 @@
   label span {
     position: absolute;
     left: 50%;
-    /* display: block; */
     transform: translateX(-50%);
-    /* text-align: center; */
-    /* position: relative; */
-    /* margin-left: auto; */
-    /* margin-right: auto; */
   }
   .icon-group {
     display: flex;
@@ -307,11 +339,24 @@
     left: 0;
   }
   .shortcut-list {
-    display: grid;
+    display: block;
     grid-template-columns: auto 1fr;
-    column-gap: 1rem;
-    row-gap: 0.625rem;
+  }
+  .shortcut-list li {
+    display: grid;
+    column-gap: 0.75rem;
+    row-gap: 0.875rem;
+    grid-template-columns: 10.75rem 1fr;
     margin: 0.875rem 0 0 0;
+    align-items: center;
+  }
+  .shortcut-list li .combo,
+  .shortcut-list li span:only-child {
+    align-self: start;
+    justify-self: end;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
   }
   @media (max-width: 720px) {
     .help-grid > div:last-child {

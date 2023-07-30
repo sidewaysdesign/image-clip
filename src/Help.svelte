@@ -27,7 +27,7 @@
 <div class="help-page-overlay" transition:fade={{ duration: 250 }} on:click={closePopup} on:keydown={handleKeyDown} />
 <div class="help-page-wrapper" transition:fade={{ duration: 375 }}>
   <div class="wordmark" />
-  <h3>Quickly trim, save and copy to the clipboard images opened directly in a browser window.</h3>
+  <h3>Quickly trim, save and copy to the clipboard images opened directly in a browser tab.</h3>
   <p class="center">Works with PNG, WebP and JPEG formats.</p>
   <div class="help-grid">
     <div class="icon-group">
@@ -98,6 +98,15 @@
     <div class="help-text">
       <h4>Filename</h4>
       <p>Click on filename area to edit. Quadrants are suffixed with "{$quadsuffix}1", "{$quadsuffix}2" <em>etc.</em> unless manually edited.</p>
+    </div>
+    <div class="icon-group">
+      <div class="icon-unit">
+        <div class="icon-exit" />
+      </div>
+    </div>
+    <div class="help-text">
+      <h4>Exit</h4>
+      <p>Exits QuickTrim and reloads the image in the browser tab.</p>
     </div>
     <div />
     <div class="help-text">
@@ -254,7 +263,8 @@
   .icon-shrink,
   .icon-expand,
   .icon-clipboard,
-  .icon-download {
+  .icon-download,
+  .icon-exit {
     width: 2rem;
     height: 2rem;
     display: block;
@@ -267,7 +277,8 @@
   .icon-shrink,
   .icon-expand,
   .icon-clipboard,
-  .icon-download {
+  .icon-download,
+  .icon-exit {
     background-size: 1.875rem 1.875rem;
   }
   .icon-close {

@@ -1,5 +1,5 @@
 <script>
-  import { trimInfo, params, isFullScreen, popupOpen } from './stores.js'
+  import { trimInfo, params, isFullScreen, popupOpen, sourceImage } from './stores.js'
 
   import Help from './Help.svelte'
 
@@ -27,6 +27,27 @@
   const untuckIt = () => {
     tucked = false
   }
+  const resetHandler = () => {
+    // const paramDelimiter = $sourceImage.originalUrl.includes('?') ? '&' : '?'
+    replaceDOMWithImage($sourceImage.originalUrl, $sourceImage.width, $sourceImage.height)
+    // window.location.href = `${$sourceImage.originalUrl}${paramDelimiter}quicktrim-reset=true`
+
+    // $trimInfo.width
+  }
+  function handleExitEvent(event) {
+    if (event.key === 'Escape' && event.shiftKey) resetHandler()
+  }
+  const replaceDOMWithImage = (url, width, height) => {
+    document.body.innerHTML = `
+    <img style="display: block;-webkit-user-select: none;margin: auto;background-color: hsl(0, 0%, 90%);transition: background-color 300ms;" src="${url}" width="${width}" height="${height}" style="object-fit: contain;">
+    `
+    document.head.innerHTML = `
+    <meta name="viewport" content="width=device-width, minimum-scale=0.1">
+    <title>${url}</title>
+    `
+    document.body.style.cssText = 'display:flex; margin: auto 0; background: #0e0e0e; height: 100%;'
+    document.documentElement.style.cssText = 'height: 100%;'
+  }
 </script>
 
 <div class:tucked class="mode-control-wrapper" class:triminprogress={$trimInfo.triminprogress}>
@@ -36,14 +57,17 @@
       <div class="wordmark" />
       <p class="byline"><a href="https://sidewaysdesign.com" target="blank">by Sideways Design</a></p>
     </div>
-    <div class="mode-control-info" on:keydown={handleOpenKeyEvent} on:click={handleOpen} />
     <div class="mode-control-container">
       <div class="mode-control mode-control-whole" on:keydown={event => event.key.toLowerCase() === 'm' && toggleMode('whole')} on:click={() => toggleMode('whole')} aria-label="Whole Image" tabindex="-2" class:active={$params.mode === 'whole'}>
-        <span class="tooltip">Whole Image</span>
+        <span class="tooltip">Whole</span>
       </div>
       <div class="mode-control mode-control-quadrant" on:keydown={event => event.key.toLowerCase() === 'm' && toggleMode('quadrant')} on:click={() => toggleMode('quadrant')} aria-label="Quadrant" tabindex="-1" class:active={$params.mode === 'quadrant'}>
         <span class="tooltip">Quadrants</span>
       </div>
+    </div>
+    <div class="mode-control-container">
+      <div class="mode-control mode-control-exit" on:keydown={handleExitEvent} on:click={resetHandler}><span class="tooltip">Exit</span></div>
+      <div class="mode-control mode-control-info" on:keydown={handleOpenKeyEvent} on:click={handleOpen}><span class="tooltip">Help</span></div>
     </div>
     <div aria-hidden="true" class="mode-control-hide2" on:click={untuckIt} />
   </div>
@@ -58,7 +82,7 @@
     transition: 0.2s opacity ease-in-out;
   }
   :root {
-    --tuckwidth: 1.5rem;
+    --tuckwidth: 1.375rem;
   }
   .mode-control-hide1,
   .mode-control-hide2 {
@@ -68,23 +92,31 @@
     background-repeat: no-repeat;
     background-size: var(--tuckwidth) var(--tuckwidth);
   }
+  .mode-control-exit,
   .mode-control-info {
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: -0.125rem;
-    margin-left: -0.1875rem;
+    width: calc(var(--buttonsize) * 0.65625);
+    height: calc(var(--buttonsize) * 0.65625);
+    /* margin-right: -0.125rem; */
+    /* margin-left: -0.1875rem; */
     background-color: rgba(100, 100, 100, 0);
-    background-position: 49% 40%;
+    background-position: 45% 45%;
     background-repeat: no-repeat;
-    background-size: 0.9rem 0.9rem;
-    border-radius: 100px;
-    border: 1px solid rgba(255, 255, 255, 0.75);
     opacity: 0.7;
     transition: all 0.12s ease-in-out;
   }
+  .mode-control-exit {
+    width: calc(var(--buttonsize) * 0.8125);
+    height: calc(var(--buttonsize) * 0.8125);
+    background-size: calc(var(--buttonsize) * 0.75);
+  }
+  .mode-control-info {
+    border-radius: 100px;
+    border: 2px solid rgba(255, 255, 255, 0.75);
+    background-size: 1rem;
+    transform: translateY(0.1875rem);
+  }
   .mode-control-info:hover {
     opacity: 1;
-    /* background-color: rgba(100, 100, 100, 0.25); */
   }
   .mode-control-info:active {
     opacity: 1;
@@ -109,6 +141,7 @@
   .tucked .mode-control-hide2 {
     width: var(--tuckwidth);
     transition: width 0.25s ease-in-out, opacity 0.25s ease-in-out;
+    transition-delay: 0.25s;
   }
   .byline,
   .byline a {
@@ -125,9 +158,17 @@
   .byline a:hover {
     opacity: 1;
   }
+  .mode-control {
+    position: relative;
+  }
   .mode-control:hover .tooltip {
     visibility: visible;
     opacity: 1;
+  }
+  .mode-control-info:hover .tooltip {
+    top: 1.5625rem;
+    display: block;
+    height: 1.25rem;
   }
 
   .mode-control-wrapper {
@@ -150,14 +191,30 @@
     border-left-width: 0;
   }
   .mode-control-container {
+    position: relative;
     display: flex;
-    gap: calc(var(--apppadding) / 4);
+    gap: calc(var(--apppadding) / 3);
   }
-
+  .mode-control-container {
+    margin-left: 0;
+  }
+  .mode-control-container + .mode-control-container {
+    margin-left: 0.375rem;
+    column-gap: 0.4375rem;
+  }
+  .mode-control-container + .mode-control-container::before {
+    position: absolute;
+    content: '';
+    width: 1px;
+    height: 130%;
+    left: -0.5625rem;
+    background-color: white;
+    top: -15%;
+  }
   .mode-control-quadrant,
   .mode-control-whole {
-    width: var(--buttonsize);
-    height: var(--buttonsize);
+    width: calc(var(--buttonsize) * 0.8125);
+    height: calc(var(--buttonsize) * 0.8125);
     background-size: 100%;
     background-repeat: no-repeat;
     background-position: center;
@@ -183,5 +240,9 @@
     background-size: contain;
     background-repeat: no-repeat;
     margin: 0 auto 0.375rem 0;
+  }
+  .wordmark,
+  .byline {
+    margin-left: -0.375rem;
   }
 </style>

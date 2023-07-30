@@ -29,6 +29,7 @@ export const rectState = writable({
 export const sourceImage = writable({
   width: 0,
   height: 0,
+  originalUrl: '',
   url: '',
   extension: ''
 })

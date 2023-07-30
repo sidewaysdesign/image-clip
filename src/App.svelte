@@ -7,22 +7,29 @@
   let imageUrl
   let urlParams
 
-  if (window.location.search) urlParams = new URLSearchParams(window.location.search)
+  const incomingUrl = window.location.search
 
-  // imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1126246524905607279/sidewaysdesign_white_palette_on_a_white_background_3c475684-5029-459b-ab37-f5bfac7e9ea4.png'
-  imageUrl = urlParams?.get('image') || 'https://media.discordapp.net/attachments/1060231236733382769/1126296883850137600/sidewaysdesign_greyscale_city_skyline_multicolour_equalizer_gra_11365019-942e-4970-9a45-b109a2fe7c08.png'
+  if (incomingUrl) urlParams = new URLSearchParams(incomingUrl)
+
+  imageUrl = urlParams?.get('image') || 'https://picsum.photos/1024/1024'
 
   const toastOptions = { duration: 1500, intro: { x: 256 } }
   const toastHandler = e => toast.push(e.detail, toastOptions)
 
   const splitFileNameFromUrl = url => {
-    const fileName = url.split('/').pop()
+    const [baseUrl, parameters] = url.split('?')
+    const fileName = baseUrl.split('/').pop()
     const [_, nameWithoutExtension, extension] = fileName.match(/(.+)(\.\w+)$/) ?? []
-    return { rootname: nameWithoutExtension ?? fileName, imageExtension: extension ?? '' }
+
+    return {
+      rootname: nameWithoutExtension ?? fileName,
+      imageExtension: extension ?? '',
+      parameters: parameters ?? ''
+    }
   }
 
-  const { rootname, imageExtension } = splitFileNameFromUrl(imageUrl)
-  sourceImage.update(state => ({ ...state, url: imageUrl, extension: imageExtension }))
+  const { rootname, imageExtension, parameters } = splitFileNameFromUrl(imageUrl)
+  sourceImage.update(state => ({ ...state, originalUrl: imageUrl, url: `${rootname}.${imageExtension}`, extension: imageExtension }))
   let { mode } = $params
 
   let state = {

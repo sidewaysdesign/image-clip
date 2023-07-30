@@ -246,11 +246,11 @@
   }
   .filename-text {
     color: #ccc;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     line-height: 1.33;
     text-align: left;
     font-weight: normal;
-    padding: 0.0625rem 0.375rem;
+    padding: 0 0.375rem 0.0625rem 0.375rem;
     line-break: anywhere;
     border: 1px dashed transparent;
     border-radius: 12px;
